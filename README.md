@@ -15,6 +15,12 @@ Enable safe, consensus-driven deployment of Kubernetes operators through multi-a
 - **PostgreSQL State**: Persistent proposal tracking and agent memory
 - **GitHub Integration**: Automated PR creation and review workflows
 
+### Documentation
+
+- 📊 **[Architecture Diagrams](docs/diagrams/)** - 5 visual diagrams (system overview, control plane, agent pipeline, infrastructure, packaging)
+- 📖 **[Architecture Guide](docs/AUTONOMOUS_ARCHITECTURE.md)** - Complete system architecture (12KB)
+- 🎨 **[Diagram Reference](docs/ARCHITECTURE_DIAGRAM.md)** - ASCII diagrams and data flows (14KB)
+
 ## Status
 
 🚧 **Active Development** - Autonomous development system deploying Phase 1 (MVP)
