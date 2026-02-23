@@ -1,0 +1,55 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: agentworkload-validator
+webhooks:
+- name: agentworkload.agentic.ninerewards.io
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: agentic-system
+      path: /validate-agentic-ninerewards-io-v1alpha1-agentworkload
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi... # placeholder, filled by cert-manager
+  rules:
+  - operations:
+    - CREATE
+    - UPDATE
+    apiGroups:
+    - agentic.ninerewards.io
+    apiVersions:
+    - v1alpha1
+    resources:
+    - agentworkloads
+  failurePolicy: Fail
+  sideEffects: None
+  admissionReviewVersions:
+  - v1
+  timeoutSeconds: 10
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: agentworkload-mutator
+webhooks:
+- name: magentworkload.agentic.ninerewards.io
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: agentic-system
+      path: /mutate-agentic-ninerewards-io-v1alpha1-agentworkload
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi... # placeholder, filled by cert-manager
+  rules:
+  - operations:
+    - CREATE
+    - UPDATE
+    apiGroups:
+    - agentic.ninerewards.io
+    apiVersions:
+    - v1alpha1
+    resources:
+    - agentworkloads
+  failurePolicy: Fail
+  sideEffects: None
+  admissionReviewVersions:
+  - v1
+  timeoutSeconds: 10
