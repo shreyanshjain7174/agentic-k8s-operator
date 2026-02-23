@@ -68,6 +68,13 @@ func (pe *PolicyEvaluator) Evaluate(input *EvaluationInput) *EvaluationResult {
 		return result
 	}
 
+	// Rule 6: Deny when multiple safety rules violated (low confidence + critical degradation) - CHECK EARLY
+	if input.Confidence < 0.90 && input.ClusterHealthScore < 40 {
+		result.Allowed = false
+		result.Reasons = append(result.Reasons, "CRITICAL: Low confidence AND cluster degradation. Manual intervention required.")
+		return result
+	}
+
 	// Rule 1: Allow high-confidence actions (>= 0.95) for non-destructive
 	if input.Confidence >= 0.95 && !isDestructiveAction(input.ActionType) && input.ClusterHealthScore >= 50 {
 		result.Allowed = true
@@ -93,13 +100,6 @@ func (pe *PolicyEvaluator) Evaluate(input *EvaluationInput) *EvaluationResult {
 	if input.Confidence < 0.95 {
 		result.Allowed = false
 		result.Reasons = append(result.Reasons, fmt.Sprintf("Low confidence (%.2f) action requires human approval (threshold: 0.95)", input.Confidence))
-		return result
-	}
-
-	// Rule 6: Deny when multiple safety rules violated (low confidence + degraded health)
-	if input.Confidence < 0.90 && input.ClusterHealthScore < 40 {
-		result.Allowed = false
-		result.Reasons = append(result.Reasons, "CRITICAL: Low confidence AND cluster degradation. Manual intervention required.")
 		return result
 	}
 
@@ -147,22 +147,42 @@ func (pe *PolicyEvaluator) EvaluatePermissive(input *EvaluationInput) *Evaluatio
 func isDestructiveAction(action string) bool {
 	destructive := []string{"delete", "remove", "purge", "drop", "reset", "cleanup", "clear"}
 	actionLower := strings.ToLower(action)
+	
+	// Use exact match only (no substring matching to avoid false positives)
 	for _, d := range destructive {
-		if actionLower == d || strings.Contains(actionLower, d) {
+		if actionLower == d {
 			return true
 		}
 	}
+	
+	// Also check for destructive as first action in compound actions (e.g., "delete_and_restore")
+	for _, d := range destructive {
+		if strings.HasPrefix(actionLower, d+"_") {
+			return true
+		}
+	}
+	
 	return false
 }
 
 func isReadOnlyAction(action string) bool {
 	readonly := []string{"get", "list", "describe", "monitor", "analyze", "read", "check", "validate"}
 	actionLower := strings.ToLower(action)
+	
+	// Use exact match only (no substring matching to avoid false positives)
 	for _, r := range readonly {
-		if actionLower == r || strings.Contains(actionLower, r) {
+		if actionLower == r {
 			return true
 		}
 	}
+	
+	// Also check for readonly as first action in compound actions (e.g., "get_and_optimize")
+	for _, r := range readonly {
+		if strings.HasPrefix(actionLower, r+"_") {
+			return true
+		}
+	}
+	
 	return false
 }
 
