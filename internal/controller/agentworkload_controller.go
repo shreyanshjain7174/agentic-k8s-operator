@@ -33,6 +33,9 @@ import (
 	"github.com/shreyansh/agentic-operator/pkg/opa"
 )
 
+// Maximum number of actions to keep in status to prevent unbounded growth
+const maxActionsInStatus = 100
+
 // AgentWorkloadReconciler reconciles a AgentWorkload object
 type AgentWorkloadReconciler struct {
 	client.Client
@@ -78,10 +81,13 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	log.Info("Got status from MCP", "status", status)
 
-	// Extract cluster health from status (default to 75 if not provided)
+	// Extract cluster health from status
+	// Default to 75 if not provided by MCP, but log a warning
 	clusterHealth := 75.0
 	if health, ok := status["cluster_health"].(float64); ok {
 		clusterHealth = health
+	} else {
+		log.Info("Warning: MCP status missing 'cluster_health' field, using default", "default", clusterHealth)
 	}
 
 	// Step 3: Call MCP to propose an action
@@ -105,31 +111,72 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Step 4: Evaluate action safety using OPA
 	now := metav1.Now()
 	
-	// Convert confidence string to float
-	confidenceStr := proposal["confidence"].(string)
+	// Extract proposal fields safely (use comma-ok idiom to prevent panics)
+	actionName, ok := proposal["action"].(string)
+	if !ok {
+		log.Error(nil, "MCP proposal missing or invalid 'action' field")
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	description, ok := proposal["description"].(string)
+	if !ok {
+		log.Error(nil, "MCP proposal missing or invalid 'description' field")
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	confidenceStr, ok := proposal["confidence"].(string)
+	if !ok {
+		log.Error(nil, "MCP proposal missing or invalid 'confidence' field")
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
 	confidence, err := strconv.ParseFloat(confidenceStr, 64)
 	if err != nil {
 		log.Error(err, "failed to parse confidence", "confidence", confidenceStr)
-		confidence = 0.0
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 	}
 
 	// Create OPA evaluator and evaluate action
+	// Use the appropriate evaluation mode based on policy setting
 	evaluator := opa.NewPolicyEvaluator()
 	opaInput := &opa.EvaluationInput{
-		ActionType:         proposal["action"].(string),
+		ActionType:         actionName,
 		Confidence:         confidence,
 		ClusterHealthScore: clusterHealth,
 		OPAPolicyMode:      *workload.Spec.OPAPolicy,
 	}
 
-	opaResult := evaluator.Evaluate(opaInput)
+	// Apply mode-specific evaluation logic
+	var opaResult *opa.EvaluationResult
+	if *workload.Spec.OPAPolicy == "permissive" {
+		opaResult = evaluator.EvaluatePermissive(opaInput)
+	} else {
+		// Default to strict mode
+		opaResult = evaluator.EvaluateStrict(opaInput)
+	}
 
 	log.Info("OPA evaluation result", "allowed", opaResult.Allowed, "confidence", opaResult.Confidence, "reasons", opaResult.Reasons)
 
 	// Step 5: Handle action execution or approval pending
 	action := agenticv1alpha1.Action{
-		Name:        proposal["action"].(string),
-		Description: proposal["description"].(string),
+		Name:        actionName,
+		Description: description,
 		Confidence:  confidenceStr,
 		Timestamp:   &now,
 	}
@@ -150,10 +197,14 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 			workload.Status.Phase = "Failed"
 			action.Approved = boolPtr(false)
 			workload.Status.ProposedActions = append(workload.Status.ProposedActions, action)
+			prunedProposed := pruneActions(workload.Status.ProposedActions, maxActionsInStatus)
+			workload.Status.ProposedActions = prunedProposed
 		} else {
 			log.Info("Action executed successfully", "action", action.Name, "result", execution)
 			action.Approved = boolPtr(true)
 			workload.Status.ExecutedActions = append(workload.Status.ExecutedActions, action)
+			prunedExecuted := pruneActions(workload.Status.ExecutedActions, maxActionsInStatus)
+			workload.Status.ExecutedActions = prunedExecuted
 			workload.Status.Phase = "Completed"
 		}
 	} else {
@@ -161,6 +212,8 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		log.Info("OPA denied action, requiring human approval", "action", action.Name, "reasons", opaResult.Reasons)
 		action.Approved = boolPtr(false)
 		workload.Status.ProposedActions = append(workload.Status.ProposedActions, action)
+		prunedProposed := pruneActions(workload.Status.ProposedActions, maxActionsInStatus)
+		workload.Status.ProposedActions = prunedProposed
 		workload.Status.Phase = "PendingApproval"
 	}
 
@@ -191,9 +244,22 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	return ctrl.Result{RequeueAfter: requeueInterval}, nil
 }
 
-// Helper function
+// Helper functions
+
 func boolPtr(b bool) *bool {
 	return &b
+}
+
+// pruneActions removes oldest actions to keep the list bounded
+// Keeps the most recent maxSize actions, discards oldest
+func pruneActions(actions []agenticv1alpha1.Action, maxSize int) []agenticv1alpha1.Action {
+	if len(actions) <= maxSize {
+		return actions
+	}
+	
+	// Keep only the most recent maxSize actions (newest are at the end after append)
+	// So we need to trim from the beginning
+	return actions[len(actions)-maxSize:]
 }
 
 // SetupWithManager sets up the controller with the Manager.

@@ -1,4 +1,4 @@
-package main
+package agentworkload.policies
 
 # OPA Policy Rules for AgentWorkload Action Execution
 # Generic, tool-agnostic safety policies that apply to any infrastructure (Ceph, MinIO, PostgreSQL, etc.)
