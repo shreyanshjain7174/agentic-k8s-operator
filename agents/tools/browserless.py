@@ -10,6 +10,7 @@ Connects to Browserless via WebSocket to:
 
 import asyncio
 import base64
+import binascii
 import json
 import logging
 from typing import Optional, Dict, Tuple
@@ -19,6 +20,9 @@ import aiohttp
 import websockets
 
 logger = logging.getLogger(__name__)
+
+# Constants
+DEFAULT_TIMEOUT = 30
 
 
 class BrowserlessError(Exception):
@@ -45,13 +49,13 @@ class BrowserlessClient:
         html, screenshot = await client.scrape_url("https://example.com")
     """
     
-    def __init__(self, browserless_url: str = "ws://browserless:3000", timeout: int = 30):
+    def __init__(self, browserless_url: str = "ws://browserless:3000", timeout: int = DEFAULT_TIMEOUT):
         """
         Initialize Browserless client.
         
         Args:
             browserless_url: WebSocket URL (e.g., "ws://browserless:3000")
-            timeout: Session timeout in seconds (hard limit before release)
+            timeout: Session timeout in seconds (hard limit before release, default 30s)
         """
         self.browserless_url = browserless_url
         self.timeout = timeout
@@ -106,7 +110,15 @@ class BrowserlessClient:
             
         Returns:
             Tuple of (html_content, screenshot_bytes)
+            
+        Raises:
+            BrowserlessError: If URL scheme is not http/https
         """
+        # Validate URL scheme (security: prevent file://, javascript://)
+        parsed_url = urlparse(url)
+        if parsed_url.scheme not in ['http', 'https']:
+            raise BrowserlessError(f"Invalid URL scheme: {parsed_url.scheme}. Only http/https allowed.")
+        
         # Build Browserless CDP endpoint
         # Format: ws://browserless:3000/chromium/playwright?[options]
         browserless_endpoint = f"{self.browserless_url}/chromium/playwright"
@@ -122,7 +134,12 @@ class BrowserlessClient:
                     "method": "Page.navigate",
                     "params": {"url": url}
                 }))
-                response = json.loads(await websocket.recv())
+                
+                # Parse navigation response with error handling
+                try:
+                    response = json.loads(await websocket.recv())
+                except json.JSONDecodeError as e:
+                    raise BrowserlessError(f"Invalid JSON response from CDP (navigate): {e}")
                 
                 if "error" in response:
                     raise BrowserlessError(f"CDP navigation failed: {response['error']}")
@@ -138,7 +155,12 @@ class BrowserlessClient:
                         "expression": "document.documentElement.outerHTML"
                     }
                 }))
-                html_response = json.loads(await websocket.recv())
+                
+                try:
+                    html_response = json.loads(await websocket.recv())
+                except json.JSONDecodeError as e:
+                    raise BrowserlessError(f"Invalid JSON response from CDP (extractHTML): {e}")
+                
                 html_content = html_response.get("result", {}).get("value", "")
                 
                 if not html_content:
@@ -150,14 +172,22 @@ class BrowserlessClient:
                     "method": "Page.captureScreenshot",
                     "params": {"format": "png"}
                 }))
-                screenshot_response = json.loads(await websocket.recv())
+                
+                try:
+                    screenshot_response = json.loads(await websocket.recv())
+                except json.JSONDecodeError as e:
+                    raise BrowserlessError(f"Invalid JSON response from CDP (captureScreenshot): {e}")
+                
                 screenshot_b64 = screenshot_response.get("result", {}).get("data", "")
                 
                 if not screenshot_b64:
                     raise BrowserlessError("Failed to capture screenshot")
                 
-                # Decode base64 screenshot
-                screenshot_bytes = base64.b64decode(screenshot_b64)
+                # Decode base64 screenshot with error handling
+                try:
+                    screenshot_bytes = base64.b64decode(screenshot_b64)
+                except binascii.Error as e:
+                    raise BrowserlessError(f"Invalid base64 screenshot data: {e}")
                 
                 logger.info(f"Successfully scraped {url}: {len(html_content)} bytes HTML, {len(screenshot_bytes)} bytes screenshot")
                 
