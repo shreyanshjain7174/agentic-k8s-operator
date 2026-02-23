@@ -1,0 +1,77 @@
+apiVersion: agentic.ninerewards.io/v1alpha1
+kind: AgentWorkload
+metadata:
+  name: generic-optimization-task
+  namespace: agentic-system
+spec:
+  # Type of workload (tool-agnostic - works with any MCP server)
+  workloadType: generic
+  
+  # Endpoint to the MCP server
+  mcpServerEndpoint: "http://mcp-server:8000"
+  
+  # High-level objective for the agent
+  objective: "Optimize system performance and reduce resource usage"
+  
+  # List of agents to run for this workload
+  agents:
+    - analyzer
+    - optimizer
+    - monitor
+  
+  # Auto-approve actions with confidence >= this threshold
+  autoApproveThreshold: "0.95"
+  
+  # Safety policy (strict or permissive)
+  opaPolicy: strict
+
+---
+# Example with Ceph workload type
+apiVersion: agentic.ninerewards.io/v1alpha1
+kind: AgentWorkload
+metadata:
+  name: ceph-recovery-task
+  namespace: agentic-system
+spec:
+  workloadType: ceph
+  mcpServerEndpoint: "http://ceph-mcp-server:8000"
+  objective: "Manage OSD recovery and maintain cluster health"
+  agents:
+    - osd_recovery_agent
+    - predictive_maintenance_agent
+  autoApproveThreshold: "0.90"
+  opaPolicy: strict
+
+---
+# Example with MinIO workload type
+apiVersion: agentic.ninerewards.io/v1alpha1
+kind: AgentWorkload
+metadata:
+  name: minio-optimization-task
+  namespace: agentic-system
+spec:
+  workloadType: minio
+  mcpServerEndpoint: "http://minio-mcp-server:8000"
+  objective: "Optimize MinIO bucket configuration and tiering"
+  agents:
+    - bucket_analyzer
+    - tiering_optimizer
+  autoApproveThreshold: "0.85"
+  opaPolicy: permissive
+
+---
+# Example with PostgreSQL workload type
+apiVersion: agentic.ninerewards.io/v1alpha1
+kind: AgentWorkload
+metadata:
+  name: postgres-maintenance-task
+  namespace: agentic-system
+spec:
+  workloadType: postgres
+  mcpServerEndpoint: "http://postgres-mcp-server:8000"
+  objective: "Maintain database performance and optimize queries"
+  agents:
+    - query_analyzer
+    - index_optimizer
+  autoApproveThreshold: "0.92"
+  opaPolicy: strict
