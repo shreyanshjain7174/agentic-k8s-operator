@@ -105,31 +105,72 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Step 4: Evaluate action safety using OPA
 	now := metav1.Now()
 	
-	// Convert confidence string to float
-	confidenceStr := proposal["confidence"].(string)
+	// Extract proposal fields safely (use comma-ok idiom to prevent panics)
+	actionName, ok := proposal["action"].(string)
+	if !ok {
+		log.Error(nil, "MCP proposal missing or invalid 'action' field")
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	description, ok := proposal["description"].(string)
+	if !ok {
+		log.Error(nil, "MCP proposal missing or invalid 'description' field")
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	confidenceStr, ok := proposal["confidence"].(string)
+	if !ok {
+		log.Error(nil, "MCP proposal missing or invalid 'confidence' field")
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
 	confidence, err := strconv.ParseFloat(confidenceStr, 64)
 	if err != nil {
 		log.Error(err, "failed to parse confidence", "confidence", confidenceStr)
-		confidence = 0.0
+		workload.Status.Phase = "Failed"
+		if err := r.Status().Update(ctx, &workload); err != nil {
+			log.Error(err, "failed to update workload status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
 	}
 
 	// Create OPA evaluator and evaluate action
+	// Use the appropriate evaluation mode based on policy setting
 	evaluator := opa.NewPolicyEvaluator()
 	opaInput := &opa.EvaluationInput{
-		ActionType:         proposal["action"].(string),
+		ActionType:         actionName,
 		Confidence:         confidence,
 		ClusterHealthScore: clusterHealth,
 		OPAPolicyMode:      *workload.Spec.OPAPolicy,
 	}
 
-	opaResult := evaluator.Evaluate(opaInput)
+	// Apply mode-specific evaluation logic
+	var opaResult *opa.EvaluationResult
+	if *workload.Spec.OPAPolicy == "permissive" {
+		opaResult = evaluator.EvaluatePermissive(opaInput)
+	} else {
+		// Default to strict mode
+		opaResult = evaluator.EvaluateStrict(opaInput)
+	}
 
 	log.Info("OPA evaluation result", "allowed", opaResult.Allowed, "confidence", opaResult.Confidence, "reasons", opaResult.Reasons)
 
 	// Step 5: Handle action execution or approval pending
 	action := agenticv1alpha1.Action{
-		Name:        proposal["action"].(string),
-		Description: proposal["description"].(string),
+		Name:        actionName,
+		Description: description,
 		Confidence:  confidenceStr,
 		Timestamp:   &now,
 	}

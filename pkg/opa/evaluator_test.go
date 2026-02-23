@@ -17,6 +17,7 @@ limitations under the License.
 package opa
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -126,24 +127,26 @@ func TestOPA_CriticalCondition(t *testing.T) {
 	if result.Allowed {
 		t.Errorf("Expected action to be denied during critical condition, got allowed")
 	}
+	
 	// Should have critical message
 	hasCritical := false
 	for _, reason := range result.Reasons {
-		if len(reason) > 0 && reason[0:8] == "CRITICAL" {
+		if strings.Contains(reason, "CRITICAL") {
 			hasCritical = true
 			break
 		}
 	}
 	if !hasCritical {
-		t.Logf("Note: No CRITICAL prefix in reasons (acceptable), got: %v", result.Reasons)
+		t.Errorf("Expected CRITICAL message in reasons for critical condition, got: %v", result.Reasons)
 	}
-	t.Logf("✅ Critical condition handled: %v", result.Reasons)
+	
+	t.Logf("✅ Critical condition handled correctly: %v", result.Reasons)
 }
 
 func TestOPA_StrictMode(t *testing.T) {
 	pe := NewPolicyEvaluator()
 	
-	// MEDIUM confidence should be allowed in normal mode
+	// MEDIUM confidence should be allowed in normal Evaluate mode
 	resultNormal := pe.Evaluate(&EvaluationInput{
 		ActionType:         "optimize_resources",
 		Confidence:         0.85,
@@ -151,7 +154,7 @@ func TestOPA_StrictMode(t *testing.T) {
 		OPAPolicyMode:      "strict",
 	})
 
-	// MEDIUM confidence should be denied in strict mode (unless read-only)
+	// MEDIUM confidence should be DENIED in strict mode (unless read-only)
 	resultStrict := pe.EvaluateStrict(&EvaluationInput{
 		ActionType:         "optimize_resources",
 		Confidence:         0.85,
@@ -159,10 +162,11 @@ func TestOPA_StrictMode(t *testing.T) {
 		OPAPolicyMode:      "strict",
 	})
 
-	if resultNormal.Allowed == resultStrict.Allowed && resultStrict.Allowed {
-		// Normal mode allows, strict denies - good
-		t.Logf("✅ Strict mode correctly restricts MEDIUM confidence actions")
+	if resultStrict.Allowed {
+		t.Errorf("Expected EvaluateStrict to deny MEDIUM confidence action, got allowed")
 	}
+	
+	t.Logf("✅ Strict mode correctly restricts MEDIUM confidence actions")
 	t.Logf("  Normal: %v, Strict: %v", resultNormal.Allowed, resultStrict.Allowed)
 }
 
