@@ -48,16 +48,9 @@ func (r *AgentWorkload) Default() {
 		r.Spec.OPAPolicy = stringPtr("strict")
 	}
 
-	// Initialize status if empty
-	if r.Status.Phase == "" {
-		r.Status.Phase = "Pending"
-	}
-	if r.Status.ProposedActions == nil {
-		r.Status.ProposedActions = []Action{}
-	}
-	if r.Status.ExecutedActions == nil {
-		r.Status.ExecutedActions = []Action{}
-	}
+	// NOTE: Status fields cannot be set in a mutating webhook.
+	// The API server strips the status subresource from webhook responses.
+	// Status initialization is done by the controller via r.Status().Update()
 }
 
 // ValidateCreate validates the resource on creation
@@ -69,7 +62,43 @@ func (r *AgentWorkload) ValidateCreate() error {
 // ValidateUpdate validates the resource on update
 func (r *AgentWorkload) ValidateUpdate(old runtime.Object) error {
 	agentworkloadlog.Info("validate update", "name", r.Name)
-	return r.validate()
+	
+	// First, run standard validation
+	if err := r.validate(); err != nil {
+		return err
+	}
+
+	// Check for immutable field changes
+	oldWorkload, ok := old.(*AgentWorkload)
+	if !ok {
+		return fmt.Errorf("old object is not an AgentWorkload")
+	}
+
+	// workloadType is immutable
+	if r.Spec.WorkloadType != oldWorkload.Spec.WorkloadType {
+		return apierrors.NewInvalid(
+			r.GroupVersionKind().GroupKind(),
+			r.Name,
+			field.ErrorList{
+				field.Invalid(field.NewPath("spec.workloadType"), r.Spec.WorkloadType,
+					fmt.Sprintf("field is immutable, current value: %q", oldWorkload.Spec.WorkloadType)),
+			},
+		)
+	}
+
+	// mcpServerEndpoint is immutable
+	if r.Spec.MCPServerEndpoint != oldWorkload.Spec.MCPServerEndpoint {
+		return apierrors.NewInvalid(
+			r.GroupVersionKind().GroupKind(),
+			r.Name,
+			field.ErrorList{
+				field.Invalid(field.NewPath("spec.mcpServerEndpoint"), r.Spec.MCPServerEndpoint,
+					fmt.Sprintf("field is immutable, current value: %q", oldWorkload.Spec.MCPServerEndpoint)),
+			},
+		)
+	}
+
+	return nil
 }
 
 // ValidateDelete validates the resource on deletion
@@ -159,19 +188,11 @@ func validateMCPEndpoint(endpoint string) error {
 		return fmt.Errorf("mcpServerEndpoint host is empty")
 	}
 
-	// Try to reach the endpoint (with short timeout)
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
-
-	resp, err := client.Head(endpoint + "/tools")
-	if err != nil {
-		// Warning only - don't fail validation if endpoint unreachable (might be created later)
-		// This is expected in dev environments where MCP server starts after operator
-		return nil // Allow creation; endpoint will be checked at runtime
-	}
-	defer resp.Body.Close()
-
+	// NOTE: We do NOT check endpoint reachability here because:
+	// 1. Admission webhooks must be fast and deterministic
+	// 2. Network calls in validation add latency to CREATE/UPDATE operations
+	// 3. Runtime reachability is checked by the controller during reconciliation
+	
 	return nil
 }
 
