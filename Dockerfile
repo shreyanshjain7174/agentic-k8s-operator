@@ -21,8 +21,6 @@ LABEL description="Kubernetes operator for agentic workloads"
 
 COPY --from=builder /build/manager /manager
 
-RUN chmod 500 /manager
-
 USER nonroot:nonroot
 
 ENTRYPOINT ["/manager"]

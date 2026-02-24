@@ -80,25 +80,41 @@ func (r *AgentWorkload) ValidateUpdate(old runtime.Object) error {
 	}
 
 	// workloadType is immutable
-	if r.Spec.WorkloadType != oldWorkload.Spec.WorkloadType {
+	if !stringPtrEqual(r.Spec.WorkloadType, oldWorkload.Spec.WorkloadType) {
+		newVal := ""
+		if r.Spec.WorkloadType != nil {
+			newVal = *r.Spec.WorkloadType
+		}
+		oldVal := ""
+		if oldWorkload.Spec.WorkloadType != nil {
+			oldVal = *oldWorkload.Spec.WorkloadType
+		}
 		return apierrors.NewInvalid(
 			r.GroupVersionKind().GroupKind(),
 			r.Name,
 			field.ErrorList{
-				field.Invalid(field.NewPath("spec.workloadType"), r.Spec.WorkloadType,
-					fmt.Sprintf("field is immutable, current value: %q", oldWorkload.Spec.WorkloadType)),
+				field.Invalid(field.NewPath("spec.workloadType"), newVal,
+					fmt.Sprintf("field is immutable, current value: %q", oldVal)),
 			},
 		)
 	}
 
 	// mcpServerEndpoint is immutable
-	if r.Spec.MCPServerEndpoint != oldWorkload.Spec.MCPServerEndpoint {
+	if !stringPtrEqual(r.Spec.MCPServerEndpoint, oldWorkload.Spec.MCPServerEndpoint) {
+		newVal := ""
+		if r.Spec.MCPServerEndpoint != nil {
+			newVal = *r.Spec.MCPServerEndpoint
+		}
+		oldVal := ""
+		if oldWorkload.Spec.MCPServerEndpoint != nil {
+			oldVal = *oldWorkload.Spec.MCPServerEndpoint
+		}
 		return apierrors.NewInvalid(
 			r.GroupVersionKind().GroupKind(),
 			r.Name,
 			field.ErrorList{
-				field.Invalid(field.NewPath("spec.mcpServerEndpoint"), r.Spec.MCPServerEndpoint,
-					fmt.Sprintf("field is immutable, current value: %q", oldWorkload.Spec.MCPServerEndpoint)),
+				field.Invalid(field.NewPath("spec.mcpServerEndpoint"), newVal,
+					fmt.Sprintf("field is immutable, current value: %q", oldVal)),
 			},
 		)
 	}
@@ -117,23 +133,29 @@ func (r *AgentWorkload) ValidateDelete() error {
 func (r *AgentWorkload) validate() error {
 	var allErrs []string
 
-	// 1. Validate workloadType
-	validWorkloadTypes := []string{"generic", "ceph", "minio", "postgres", "aws", "kubernetes"}
-	if !isStringInSlice(r.Spec.WorkloadType, validWorkloadTypes) {
-		allErrs = append(allErrs, fmt.Sprintf("workloadType must be one of %v, got %q", validWorkloadTypes, r.Spec.WorkloadType))
+	// 1. Validate workloadType (optional, but if provided must be valid)
+	if r.Spec.WorkloadType != nil {
+		validWorkloadTypes := []string{"generic", "ceph", "minio", "postgres", "aws", "kubernetes"}
+		if !isStringInSlice(*r.Spec.WorkloadType, validWorkloadTypes) {
+			allErrs = append(allErrs, fmt.Sprintf("workloadType must be one of %v, got %q", validWorkloadTypes, *r.Spec.WorkloadType))
+		}
 	}
 
-	// 2. Validate mcpServerEndpoint
-	if err := validateMCPEndpoint(r.Spec.MCPServerEndpoint); err != nil {
-		allErrs = append(allErrs, err.Error())
+	// 2. Validate mcpServerEndpoint (optional)
+	if r.Spec.MCPServerEndpoint != nil {
+		if err := validateMCPEndpoint(*r.Spec.MCPServerEndpoint); err != nil {
+			allErrs = append(allErrs, err.Error())
+		}
 	}
 
-	// 3. Validate objective
-	if len(r.Spec.Objective) == 0 {
-		allErrs = append(allErrs, "objective must not be empty")
-	}
-	if len(r.Spec.Objective) > 1000 {
-		allErrs = append(allErrs, fmt.Sprintf("objective must be ≤ 1000 characters, got %d", len(r.Spec.Objective)))
+	// 3. Validate objective (optional, but if provided must be valid)
+	if r.Spec.Objective != nil {
+		if len(*r.Spec.Objective) == 0 {
+			allErrs = append(allErrs, "objective must not be empty")
+		}
+		if len(*r.Spec.Objective) > 1000 {
+			allErrs = append(allErrs, fmt.Sprintf("objective must be ≤ 1000 characters, got %d", len(*r.Spec.Objective)))
+		}
 	}
 
 	// 4. Validate agents list
@@ -246,6 +268,17 @@ func isStringInSlice(s string, slice []string) bool {
 // stringPtr returns a pointer to a string
 func stringPtr(s string) *string {
 	return &s
+}
+
+// stringPtrEqual compares two string pointers for equality
+func stringPtrEqual(a, b *string) bool {
+	if a == nil && b == nil {
+		return true
+	}
+	if a == nil || b == nil {
+		return false
+	}
+	return *a == *b
 }
 
 // IsEndpointReachable attempts to verify the MCP endpoint is reachable

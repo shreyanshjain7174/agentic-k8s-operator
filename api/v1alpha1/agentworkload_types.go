@@ -27,19 +27,19 @@ import (
 type AgentWorkloadSpec struct {
 	// workloadType defines the infrastructure type (generic, ceph, minio, postgres, etc.)
 	// +kubebuilder:validation:Enum=generic;ceph;minio;postgres;aws;kubernetes
-	// +required
-	WorkloadType string `json:"workloadType"`
+	// +optional
+	WorkloadType *string `json:"workloadType,omitempty"`
 
 	// mcpServerEndpoint is the HTTP endpoint of the MCP server (e.g. "http://mcp-server:8000")
 	// +kubebuilder:validation:Pattern=`^https?://[a-zA-Z0-9.-]+(:[0-9]+)?$`
-	// +required
-	MCPServerEndpoint string `json:"mcpServerEndpoint"`
+	// +optional
+	MCPServerEndpoint *string `json:"mcpServerEndpoint,omitempty"`
 
 	// objective is the high-level goal for the agent (e.g. "optimize cluster performance")
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=1000
-	// +required
-	Objective string `json:"objective"`
+	// +optional
+	Objective *string `json:"objective,omitempty"`
 
 	// agents is a list of agent names to run for this workload
 	// +optional
@@ -56,6 +56,93 @@ type AgentWorkloadSpec struct {
 	// +kubebuilder:default=strict
 	// +optional
 	OPAPolicy *string `json:"opaPolicy,omitempty"`
+
+	// jobId uniquely identifies this agent workload job
+	// +optional
+	JobID *string `json:"jobId,omitempty"`
+
+	// targetUrls is a list of URLs to be processed by the agent workflow
+	// +optional
+	TargetURLs []string `json:"targetUrls,omitempty"`
+
+	// targetBucket is the S3 bucket where artifacts will be stored
+	// +optional
+	TargetBucket *string `json:"targetBucket,omitempty"`
+
+	// targetPrefix is the path prefix within the bucket for artifacts
+	// +optional
+	TargetPrefix *string `json:"targetPrefix,omitempty"`
+
+	// scriptUrl is the URL to the agent script to execute
+	// +optional
+	ScriptUrl *string `json:"scriptUrl,omitempty"`
+
+	// orchestration defines how the workflow is orchestrated
+	// +optional
+	Orchestration *OrchestrationSpec `json:"orchestration,omitempty"`
+
+	// resources defines CPU and memory limits for workflow execution
+	// +optional
+	Resources *ResourceSpec `json:"resources,omitempty"`
+
+	// timeouts defines execution timeouts
+	// +optional
+	Timeouts *TimeoutSpec `json:"timeouts,omitempty"`
+}
+
+// OrchestrationSpec defines orchestration settings for Argo Workflows
+type OrchestrationSpec struct {
+	// type is the orchestration engine (e.g. "argo")
+	// +optional
+	Type *string `json:"type,omitempty"`
+
+	// workflowTemplateRef references the Argo WorkflowTemplate to use
+	// +optional
+	WorkflowTemplateRef *WorkflowTemplateRef `json:"workflowTemplateRef,omitempty"`
+}
+
+// WorkflowTemplateRef references a WorkflowTemplate
+type WorkflowTemplateRef struct {
+	// name is the name of the WorkflowTemplate
+	// +optional
+	Name *string `json:"name,omitempty"`
+
+	// namespace is the namespace of the WorkflowTemplate
+	// +optional
+	Namespace *string `json:"namespace,omitempty"`
+}
+
+// ResourceSpec defines CPU and memory resource limits
+type ResourceSpec struct {
+	// requests defines minimum resource requirements
+	// +optional
+	Requests *ResourceRequirements `json:"requests,omitempty"`
+
+	// limits defines maximum resource limits
+	// +optional
+	Limits *ResourceRequirements `json:"limits,omitempty"`
+}
+
+// ResourceRequirements defines CPU and memory requirements
+type ResourceRequirements struct {
+	// cpu is the CPU resource request/limit (e.g. "500m", "1")
+	// +optional
+	CPU *string `json:"cpu,omitempty"`
+
+	// memory is the memory resource request/limit (e.g. "512Mi", "1Gi")
+	// +optional
+	Memory *string `json:"memory,omitempty"`
+}
+
+// TimeoutSpec defines execution timeout settings
+type TimeoutSpec struct {
+	// execution is the total execution timeout in seconds
+	// +optional
+	Execution *int32 `json:"execution,omitempty"`
+
+	// suspendGate is the timeout for suspend gate approval in seconds
+	// +optional
+	SuspendGate *int32 `json:"suspendGate,omitempty"`
 }
 
 // Action represents a proposed or executed action by an agent
@@ -76,6 +163,22 @@ type Action struct {
 
 	// approved indicates if this action was approved
 	Approved *bool `json:"approved,omitempty"`
+}
+
+// ArgoWorkflowRef references an Argo Workflow CR
+// Used to track the associated workflow for this AgentWorkload
+type ArgoWorkflowRef struct {
+	// name is the name of the Argo Workflow CR
+	Name string `json:"name,omitempty"`
+
+	// namespace is the namespace of the Argo Workflow CR (usually "argo-workflows")
+	Namespace string `json:"namespace,omitempty"`
+
+	// uid is the unique identifier of the Workflow CR
+	UID string `json:"uid,omitempty"`
+
+	// createdAt is when the Workflow CR was created
+	CreatedAt *metav1.Time `json:"createdAt,omitempty"`
 }
 
 // AgentWorkloadStatus defines the observed state of AgentWorkload.
@@ -99,6 +202,22 @@ type AgentWorkloadStatus struct {
 	// executedActions is a list of actions that were approved and executed
 	// +optional
 	ExecutedActions []Action `json:"executedActions,omitempty"`
+
+	// argoWorkflow references the associated Argo Workflow CR
+	// Set when the operator creates a workflow for Argo orchestration
+	// +optional
+	ArgoWorkflow *ArgoWorkflowRef `json:"argoWorkflow,omitempty"`
+
+	// argoPhase tracks the current Argo Workflow phase
+	// Values: Pending, Running, Suspended, Succeeded, Failed, Error
+	// Updated by the operator when reconciling workflow status
+	// +optional
+	ArgoPhase string `json:"argoPhase,omitempty"`
+
+	// workflowArtifacts maps workflow step names to their artifact locations
+	// Example: {"scraper": "s3://bucket/job_id/raw_html.json"}
+	// +optional
+	WorkflowArtifacts map[string]string `json:"workflowArtifacts,omitempty"`
 
 	// conditions represent the current state of the AgentWorkload resource.
 	// Each condition has a unique type and reflects the status of a specific aspect of the resource.

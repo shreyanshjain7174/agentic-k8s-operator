@@ -1,0 +1,217 @@
+---
+# RBAC for Argo Workflows
+# Grants permissions needed for the Argo workflow executor to run
+# 
+# This service account is used by workflow pods to:
+# - Access artifacts from MinIO
+# - Check their own status
+# - Update workflow annotations/labels
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: argo-workflow-executor
+  namespace: argo-workflows
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/part-of: agentic-k8s-operator
+
+---
+# ClusterRole: Argo workflow executor permissions
+# Allows reading and creating Argo Workflow resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argo-workflow-executor
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/part-of: agentic-k8s-operator
+rules:
+  # Workflows: Read and update own workflow status
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflows
+      - workflowtemplates
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - update
+  
+  # Pods: Read pod events (for artifact collection)
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+    verbs:
+      - get
+      - list
+      - watch
+  
+  # Secrets: Read artifact credentials (MinIO, LiteLLM keys)
+  - apiGroups:
+      - ""
+    resources:
+      - secrets
+    verbs:
+      - get
+  
+  # ConfigMaps: Read workflow configuration
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+# ClusterRoleBinding: Bind executor role to service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: argo-workflow-executor
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/part-of: agentic-k8s-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argo-workflow-executor
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow-executor
+    namespace: argo-workflows
+
+---
+# Role: Namespace-specific permissions for the operator
+# Allows the operator to create and manage workflows in argo-workflows namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: argo-workflow-executor
+  namespace: argo-workflows
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/part-of: agentic-k8s-operator
+rules:
+  # Workflows: Create, read, update, delete
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflows
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  
+  # WorkflowTemplates: Read only (managed by operator)
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflowtemplates
+    verbs:
+      - get
+      - list
+      - watch
+  
+  # Pods: Read pod logs and status
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+    verbs:
+      - get
+      - list
+      - watch
+  
+  # Events: Create events for workflow status
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create
+      - patch
+
+---
+# RoleBinding: Bind executor role to service account in argo-workflows namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argo-workflow-executor
+  namespace: argo-workflows
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/part-of: agentic-k8s-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: argo-workflow-executor
+subjects:
+  - kind: ServiceAccount
+    name: argo-workflow-executor
+    namespace: argo-workflows
+
+---
+# ClusterRole: Operator permissions to manage Argo Workflows
+# Used by the agentic-k8s-operator to create/manage workflows
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agentworkload-operator-argo
+  labels:
+    app.kubernetes.io/name: agentic-k8s-operator
+    app.kubernetes.io/part-of: agentic-k8s-operator
+rules:
+  # Workflows: Create, read, update, delete
+  - apiGroups:
+      - argoproj.io
+    resources:
+      - workflows
+      - workflowtemplates
+    verbs:
+      - create
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - delete
+  
+  # Pods: Monitor workflow pods
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+      - pods/log
+    verbs:
+      - get
+      - list
+      - watch
+
+---
+# ClusterRoleBinding: Bind operator role to agentic-k8s-operator service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agentworkload-operator-argo
+  labels:
+    app.kubernetes.io/name: agentic-k8s-operator
+    app.kubernetes.io/part-of: agentic-k8s-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agentworkload-operator-argo
+subjects:
+  - kind: ServiceAccount
+    name: agentic-k8s-operator
+    namespace: agentic-system

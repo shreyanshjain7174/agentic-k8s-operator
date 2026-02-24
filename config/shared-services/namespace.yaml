@@ -1,0 +1,16 @@
+---
+# Shared Services Namespace
+# Contains infrastructure services used by all agent workflows:
+# - PostgreSQL: LangGraph checkpoint storage (durability)
+# - MinIO: Artifact storage (S3-compatible)
+# - Browserless: Web screenshot service (WebSocket API)
+# - LiteLLM: LLM proxy for vision models
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: shared-services
+  labels:
+    app.kubernetes.io/name: shared-services
+    app.kubernetes.io/part-of: agentic-k8s-operator
+  annotations:
+    description: "Shared infrastructure services for agentic workloads"

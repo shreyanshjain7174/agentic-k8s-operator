@@ -1,0 +1,12 @@
+---
+# Argo Workflows namespace configuration
+# Enables Argo controllers to manage workflows and artifacts
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argo-workflows
+  labels:
+    app.kubernetes.io/name: argo-workflows
+    app.kubernetes.io/part-of: agentic-k8s-operator
+  annotations:
+    description: "Argo Workflows execution engine for agentic workloads"

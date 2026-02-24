@@ -1,0 +1,187 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: agentworkloads.agentic.ninerewards.io
+  namespace: agentic-system
+spec:
+  group: agentic.ninerewards.io
+  scope: Namespaced
+  names:
+    kind: AgentWorkload
+    plural: agentworkloads
+    shortNames:
+    - aw
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: true
+    subresources:
+      status: {}
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            properties:
+              workloadType:
+                type: string
+                enum:
+                - generic
+                - ceph
+                - minio
+                - postgres
+                - aws
+                - kubernetes
+              mcpServerEndpoint:
+                type: string
+                pattern: '^https?://[a-zA-Z0-9.-]+(:[0-9]+)?$'
+              objective:
+                type: string
+                minLength: 1
+                maxLength: 1000
+              agents:
+                type: array
+                items:
+                  type: string
+              autoApproveThreshold:
+                type: string
+                pattern: '^0(\.[0-9]{1,2})?$|^1(\.0{1,2})?$'
+                default: "0.95"
+              opaPolicy:
+                type: string
+                enum:
+                - strict
+                - permissive
+                default: strict
+              jobId:
+                type: string
+              targetUrls:
+                type: array
+                items:
+                  type: string
+              targetBucket:
+                type: string
+              targetPrefix:
+                type: string
+              scriptUrl:
+                type: string
+              orchestration:
+                type: object
+                properties:
+                  type:
+                    type: string
+                  workflowTemplateRef:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+              resources:
+                type: object
+                properties:
+                  requests:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                      memory:
+                        type: string
+                  limits:
+                    type: object
+                    properties:
+                      cpu:
+                        type: string
+                      memory:
+                        type: string
+              timeouts:
+                type: object
+                properties:
+                  execution:
+                    type: integer
+                    format: int32
+                  suspendGate:
+                    type: integer
+                    format: int32
+          status:
+            type: object
+            properties:
+              phase:
+                type: string
+              readyAgents:
+                type: integer
+                format: int32
+              lastReconcileTime:
+                type: string
+                format: date-time
+              proposedActions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    confidence:
+                      type: string
+                      pattern: '^0(\.[0-9]{1,2})?$|^1(\.0{1,2})?$'
+                    timestamp:
+                      type: string
+                      format: date-time
+                    approved:
+                      type: boolean
+              executedActions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    description:
+                      type: string
+                    confidence:
+                      type: string
+                    timestamp:
+                      type: string
+                      format: date-time
+                    approved:
+                      type: boolean
+              argoWorkflow:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  namespace:
+                    type: string
+                  uid:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+              argoPhase:
+                type: string
+              workflowArtifacts:
+                type: object
+                additionalProperties:
+                  type: string
+              conditions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                    status:
+                      type: string
+                    observedGeneration:
+                      type: integer
+                      format: int64
+                    lastTransitionTime:
+                      type: string
+                      format: date-time
+                    reason:
+                      type: string
+                    message:
+                      type: string
