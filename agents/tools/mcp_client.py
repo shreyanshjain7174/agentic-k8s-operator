@@ -33,8 +33,8 @@ class URLValidationError(Exception):
 @dataclass
 class SSRFConfig:
     """Configuration for SSRF protection"""
-    allowed_schemes: Set[str] = None
-    blocked_ip_ranges: List[str] = None
+    allowed_schemes: Optional[Set[str]] = None
+    blocked_ip_ranges: Optional[List[str]] = None
     allowed_hosts: Optional[Set[str]] = None
     allow_localhost: bool = False
     allow_private_ips: bool = False
@@ -56,7 +56,7 @@ class SSRFConfig:
             ]
 
 
-def validate_url_scheme(url: str, allowed_schemes: Set[str] = None) -> str:
+def validate_url_scheme(url: str, allowed_schemes: Optional[Set[str]] = None) -> str:
     """
     Validate URL scheme is allowed (defaults to https only).
     
@@ -117,7 +117,7 @@ def resolve_hostname(hostname: str) -> Optional[str]:
     try:
         result = socket.getaddrinfo(hostname, None)
         if result:
-            return result[0][4][0]
+            return str(result[0][4][0])
     except (socket.gaierror, socket.herror, OSError):
         pass
     return None
@@ -125,7 +125,7 @@ def resolve_hostname(hostname: str) -> Optional[str]:
 
 def validate_url_host(
     url: str,
-    blocked_ip_ranges: List[str] = None,
+    blocked_ip_ranges: Optional[List[str]] = None,
     allowed_hosts: Optional[Set[str]] = None,
     allow_localhost: bool = False,
     allow_private_ips: bool = False,
@@ -261,7 +261,7 @@ def validate_url(
 def is_url_allowed(
     url: str,
     allowed_hosts: Optional[Set[str]] = None,
-    allowed_schemes: Set[str] = None,
+    allowed_schemes: Optional[Set[str]] = None,
 ) -> bool:
     """
     Check if URL passes all validation without raising.
@@ -370,6 +370,7 @@ class MCPClient:
         
         logger.info(f"Connecting to MCP endpoint: {validated_url}")
         
+        assert self._session is not None
         async with self._session.get(validated_url) as response:
             response.raise_for_status()
             return await response.json()
@@ -406,6 +407,7 @@ class MCPClient:
         
         logger.info(f"Calling MCP tool '{tool_name}' at {validated_url}")
         
+        assert self._session is not None
         async with self._session.post(
             validated_url,
             json=payload,
