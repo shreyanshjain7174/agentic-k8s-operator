@@ -29,11 +29,16 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+	ctrl "sigs.k8s.io/controller-runtime"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-// log is for logging in this package.
 var agentworkloadlog = logf.Log.WithName("agentworkload-resource")
+
+func (r *AgentWorkload) SetupWebhookWithManager(mgr ctrl.Manager) error {
+	return ctrl.NewWebhookManagedBy(mgr, r).
+		Complete()
+}
 
 // Default implements DefaultingWebhook so a webhook will be registered for the type
 func (r *AgentWorkload) Default() {
@@ -62,7 +67,7 @@ func (r *AgentWorkload) ValidateCreate() error {
 // ValidateUpdate validates the resource on update
 func (r *AgentWorkload) ValidateUpdate(old runtime.Object) error {
 	agentworkloadlog.Info("validate update", "name", r.Name)
-	
+
 	// First, run standard validation
 	if err := r.validate(); err != nil {
 		return err
@@ -192,7 +197,7 @@ func validateMCPEndpoint(endpoint string) error {
 	// 1. Admission webhooks must be fast and deterministic
 	// 2. Network calls in validation add latency to CREATE/UPDATE operations
 	// 3. Runtime reachability is checked by the controller during reconciliation
-	
+
 	return nil
 }
 
