@@ -35,3 +35,9 @@ go.work.sum
 # Python
 **/*.pyc
 __pycache__/
+
+# Build artifacts
+manager
+
+# Logs and test outputs
+*.log
