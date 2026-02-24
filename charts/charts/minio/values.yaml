@@ -1,0 +1,23 @@
+replicaCount: 1
+image:
+  repository: minio/minio
+  tag: RELEASE.2024-06-13T22-53-53Z
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 9000
+  consolePort: 9001
+resources:
+  requests:
+    cpu: "250m"
+    memory: "512Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+rootUser: minioadmin
+rootPassword: minioadmin
+defaultBuckets: "agent-artifacts,agent-logs"

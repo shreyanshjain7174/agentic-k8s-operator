@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "agentic-operator Helm values",
+  "description": "Schema for agentic-operator umbrella chart values",
+  "type": "object",
+  "required": ["license"],
+  "properties": {
+    "global": {
+      "type": "object",
+      "properties": {
+        "imageRegistry": { "type": "string" },
+        "imagePullSecrets": { "type": "array", "items": { "type": "string" } },
+        "storageClass": { "type": "string" },
+        "namespace": { "type": "string" }
+      }
+    },
+    "license": {
+      "type": "object",
+      "required": ["key"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "description": "REQUIRED — your license key",
+          "minLength": 1
+        },
+        "publicKey": {
+          "type": "string",
+          "description": "RSA public key used to verify the license"
+        },
+        "seats": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Number of licensed concurrent agent seats"
+        },
+        "tier": {
+          "type": "string",
+          "enum": ["trial", "basic", "pro", "enterprise"],
+          "description": "License tier"
+        }
+      }
+    },
+    "agenticOperator": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "replicaCount": { "type": "integer", "minimum": 1 },
+        "image": { "$ref": "#/$defs/image" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "service": { "$ref": "#/$defs/service" },
+        "leaderElection": { "type": "boolean" },
+        "logLevel": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"]
+        }
+      }
+    },
+    "argo": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "server": {
+          "type": "object",
+          "properties": {
+            "replicaCount": { "type": "integer", "minimum": 1 },
+            "image": { "$ref": "#/$defs/image" },
+            "resources": { "$ref": "#/$defs/resources" },
+            "service": { "$ref": "#/$defs/service" }
+          }
+        },
+        "controller": {
+          "type": "object",
+          "properties": {
+            "replicaCount": { "type": "integer", "minimum": 1 },
+            "image": { "$ref": "#/$defs/image" },
+            "resources": { "$ref": "#/$defs/resources" }
+          }
+        }
+      }
+    },
+    "browserless": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "replicaCount": { "type": "integer", "minimum": 1 },
+        "image": { "$ref": "#/$defs/image" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "service": { "$ref": "#/$defs/service" },
+        "concurrentSessions": { "type": "integer", "minimum": 1 },
+        "timeout": { "type": "integer", "minimum": 1000 },
+        "token": { "type": "string" }
+      }
+    },
+    "litellm": {
+      "type": "object",
+      "required": ["openaiKey"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "replicaCount": { "type": "integer", "minimum": 1 },
+        "image": { "$ref": "#/$defs/image" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "service": { "$ref": "#/$defs/service" },
+        "openaiKey": {
+          "type": "string",
+          "description": "REQUIRED — OpenAI API key for LiteLLM proxy",
+          "minLength": 1
+        },
+        "masterKey": { "type": "string" },
+        "models": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    },
+    "minio": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "replicaCount": { "type": "integer", "minimum": 1 },
+        "image": { "$ref": "#/$defs/image" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "service": { "$ref": "#/$defs/service" },
+        "persistence": { "$ref": "#/$defs/persistence" },
+        "rootUser": { "type": "string", "minLength": 1 },
+        "rootPassword": { "type": "string", "minLength": 8 },
+        "defaultBuckets": { "type": "string" }
+      }
+    },
+    "postgresql": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "replicaCount": { "type": "integer", "minimum": 1 },
+        "image": { "$ref": "#/$defs/image" },
+        "resources": { "$ref": "#/$defs/resources" },
+        "service": { "$ref": "#/$defs/service" },
+        "persistence": { "$ref": "#/$defs/persistence" },
+        "auth": {
+          "type": "object",
+          "properties": {
+            "database": { "type": "string" },
+            "username": { "type": "string" },
+            "password": { "type": "string", "minLength": 8 },
+            "postgresPassword": { "type": "string", "minLength": 8 }
+          }
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "className": { "type": "string" },
+        "annotations": { "type": "object" },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["host"],
+            "properties": {
+              "host": { "type": "string" },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": { "type": "string" },
+                    "pathType": { "type": "string", "enum": ["Prefix", "Exact", "ImplementationSpecific"] },
+                    "service": { "type": "string" },
+                    "port": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretName": { "type": "string" },
+              "hosts": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": { "type": "string" },
+        "tag": { "type": "string" },
+        "pullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"]
+        }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": { "type": "string" },
+            "memory": { "type": "string" }
+          }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["ClusterIP", "NodePort", "LoadBalancer"]
+        },
+        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "size": { "type": "string" },
+        "storageClass": { "type": "string" }
+      }
+    }
+  }
+}

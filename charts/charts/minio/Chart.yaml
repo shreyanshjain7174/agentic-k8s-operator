@@ -1,0 +1,6 @@
+apiVersion: v2
+name: minio
+description: MinIO object storage for agent artifacts
+type: application
+version: 0.1.0
+appVersion: "RELEASE.2024-06-13T22-53-53Z"

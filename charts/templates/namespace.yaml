@@ -1,0 +1,10 @@
+{{- $ns := include "agentic-operator.namespace" . -}}
+{{- if ne $ns .Release.Namespace }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+  labels:
+    {{- include "agentic-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: namespace
+{{- end }}
