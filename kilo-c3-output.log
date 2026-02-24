@@ -1,0 +1,16 @@
+[0m
+> code · z-ai/glm-5:free
+[0m
+[0m→ [0mRead agents/tools/mcp_client.py
+[0m✱ [0mGlob "**/*.py"[90m in . · 13 matches[0m
+The file `agents/tools/mcp_client.py` already contains a complete SSRF protection implementation with all the requested features:
+
+1. **URL scheme validation** (`validate_url_scheme`): Defaults to https only
+2. **Localhost/internal IP rejection** (`validate_url_host`): Blocks 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, and more
+3. **URL whitelist validation** (`allowed_hosts` in `SSRFConfig`): Supports configurable host whitelists
+4. **MCPClient integration**: Built-in SSRF protection in `connect()` and `call_tool()` methods
+
+The implementation is already complete. Should I:
+1. Create unit tests for this module?
+2. Add additional features like DNS rebinding protection?
+3. Something else?
