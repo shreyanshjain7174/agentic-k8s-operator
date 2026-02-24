@@ -43,7 +43,7 @@ func TestWorkflowManager_CreateArgoWorkflow(t *testing.T) {
 	workloadType := "generic"
 	mcpEndpoint := "http://mcp-server:8000"
 	objective := "test objective"
-	
+
 	workload := &agenticv1alpha1.AgentWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-job-001",
@@ -438,7 +438,7 @@ func BenchmarkWorkflowManager_CreateArgoWorkflow(b *testing.B) {
 	workloadType := "generic"
 	mcpEndpoint := "http://mcp:8000"
 	objective := "test"
-	
+
 	workload := &agenticv1alpha1.AgentWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "bench-job",

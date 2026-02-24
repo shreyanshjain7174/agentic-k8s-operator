@@ -127,7 +127,7 @@ func TestOPA_CriticalCondition(t *testing.T) {
 	if result.Allowed {
 		t.Errorf("Expected action to be denied during critical condition, got allowed")
 	}
-	
+
 	// Should have critical message
 	hasCritical := false
 	for _, reason := range result.Reasons {
@@ -139,13 +139,13 @@ func TestOPA_CriticalCondition(t *testing.T) {
 	if !hasCritical {
 		t.Errorf("Expected CRITICAL message in reasons for critical condition, got: %v", result.Reasons)
 	}
-	
+
 	t.Logf("✅ Critical condition handled correctly: %v", result.Reasons)
 }
 
 func TestOPA_StrictMode(t *testing.T) {
 	pe := NewPolicyEvaluator()
-	
+
 	// MEDIUM confidence should be allowed in normal Evaluate mode
 	resultNormal := pe.Evaluate(&EvaluationInput{
 		ActionType:         "optimize_resources",
@@ -165,14 +165,14 @@ func TestOPA_StrictMode(t *testing.T) {
 	if resultStrict.Allowed {
 		t.Errorf("Expected EvaluateStrict to deny MEDIUM confidence action, got allowed")
 	}
-	
+
 	t.Logf("✅ Strict mode correctly restricts MEDIUM confidence actions")
 	t.Logf("  Normal: %v, Strict: %v", resultNormal.Allowed, resultStrict.Allowed)
 }
 
 func TestOPA_PermissiveMode(t *testing.T) {
 	pe := NewPolicyEvaluator()
-	
+
 	// MEDIUM confidence should be denied in normal mode
 	resultNormal := pe.Evaluate(&EvaluationInput{
 		ActionType:         "optimize_resources",

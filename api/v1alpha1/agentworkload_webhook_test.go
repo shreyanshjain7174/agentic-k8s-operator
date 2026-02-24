@@ -23,9 +23,9 @@ import (
 func TestWebhook_RejectInvalidWorkloadType(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "invalid_type",
-			MCPServerEndpoint: "http://localhost:8000",
-			Objective:         "test objective",
+			WorkloadType:      stringPtr("invalid_type"),
+			MCPServerEndpoint: stringPtr("http://localhost:8000"),
+			Objective:         stringPtr("test objective"),
 			Agents:            []string{"agent1"},
 		},
 	}
@@ -41,9 +41,9 @@ func TestWebhook_RejectInvalidWorkloadType(t *testing.T) {
 func TestWebhook_RejectInvalidEndpoint(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "not-a-url",
-			Objective:         "test objective",
+			WorkloadType:      stringPtr("generic"),
+			MCPServerEndpoint: stringPtr("not-a-url"),
+			Objective:         stringPtr("test objective"),
 			Agents:            []string{"agent1"},
 		},
 	}
@@ -59,9 +59,9 @@ func TestWebhook_RejectInvalidEndpoint(t *testing.T) {
 func TestWebhook_RejectInvalidThreshold(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:         "generic",
-			MCPServerEndpoint:    "http://localhost:8000",
-			Objective:            "test objective",
+			WorkloadType:         stringPtr("generic"),
+			MCPServerEndpoint:    stringPtr("http://localhost:8000"),
+			Objective:            stringPtr("test objective"),
 			Agents:               []string{"agent1"},
 			AutoApproveThreshold: stringPtr("1.5"), // Invalid: > 1.0
 		},
@@ -78,9 +78,9 @@ func TestWebhook_RejectInvalidThreshold(t *testing.T) {
 func TestWebhook_AcceptValidSpec(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:         "generic",
-			MCPServerEndpoint:    "http://localhost:8000",
-			Objective:            "test objective",
+			WorkloadType:         stringPtr("generic"),
+			MCPServerEndpoint:    stringPtr("http://localhost:8000"),
+			Objective:            stringPtr("test objective"),
 			Agents:               []string{"agent1"},
 			AutoApproveThreshold: stringPtr("0.95"),
 			OPAPolicy:            stringPtr("strict"),
@@ -98,9 +98,9 @@ func TestWebhook_AcceptValidSpec(t *testing.T) {
 func TestWebhook_RejectEmptyObjective(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://localhost:8000",
-			Objective:         "", // Empty
+			WorkloadType:      stringPtr("generic"),
+			MCPServerEndpoint: stringPtr("http://localhost:8000"),
+			Objective:         stringPtr(""), // Empty
 			Agents:            []string{"agent1"},
 		},
 	}
@@ -116,9 +116,9 @@ func TestWebhook_RejectEmptyObjective(t *testing.T) {
 func TestWebhook_RejectEmptyAgents(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://localhost:8000",
-			Objective:         "test objective",
+			WorkloadType:      stringPtr("generic"),
+			MCPServerEndpoint: stringPtr("http://localhost:8000"),
+			Objective:         stringPtr("test objective"),
 			Agents:            []string{}, // Empty
 		},
 	}
@@ -139,9 +139,9 @@ func TestWebhook_RejectObjectiveTooLong(t *testing.T) {
 
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://localhost:8000",
-			Objective:         longObjective, // > 1000 chars
+			WorkloadType:      stringPtr("generic"),
+			MCPServerEndpoint: stringPtr("http://localhost:8000"),
+			Objective:         &longObjective, // > 1000 chars
 			Agents:            []string{"agent1"},
 		},
 	}
@@ -160,9 +160,9 @@ func TestWebhook_AcceptAllWorkloadTypes(t *testing.T) {
 	for _, wt := range workloadTypes {
 		workload := &AgentWorkload{
 			Spec: AgentWorkloadSpec{
-				WorkloadType:      wt,
-				MCPServerEndpoint: "http://localhost:8000",
-				Objective:         "test objective",
+				WorkloadType:      stringPtr(wt),
+				MCPServerEndpoint: stringPtr("http://localhost:8000"),
+				Objective:         stringPtr("test objective"),
 				Agents:            []string{"agent1"},
 			},
 		}
@@ -178,9 +178,9 @@ func TestWebhook_AcceptAllWorkloadTypes(t *testing.T) {
 func TestWebhook_DefaultAutoApproveThreshold(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://localhost:8000",
-			Objective:         "test objective",
+			WorkloadType:      stringPtr("generic"),
+			MCPServerEndpoint: stringPtr("http://localhost:8000"),
+			Objective:         stringPtr("test objective"),
 			Agents:            []string{"agent1"},
 			// No AutoApproveThreshold specified
 		},
@@ -200,9 +200,9 @@ func TestWebhook_DefaultAutoApproveThreshold(t *testing.T) {
 func TestWebhook_DefaultOPAPolicy(t *testing.T) {
 	workload := &AgentWorkload{
 		Spec: AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://localhost:8000",
-			Objective:         "test objective",
+			WorkloadType:      stringPtr("generic"),
+			MCPServerEndpoint: stringPtr("http://localhost:8000"),
+			Objective:         stringPtr("test objective"),
 			Agents:            []string{"agent1"},
 			// No OPAPolicy specified
 		},

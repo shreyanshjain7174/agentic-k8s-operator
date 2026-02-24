@@ -39,10 +39,10 @@ type ToolRequest struct {
 
 // ToolResponse is the response from the MCP server
 type ToolResponse struct {
-	Tool     string                 `json:"tool"`
-	Result   map[string]interface{} `json:"result,omitempty"`
-	Error    string                 `json:"error,omitempty"`
-	Success  bool                   `json:"success"`
+	Tool    string                 `json:"tool"`
+	Result  map[string]interface{} `json:"result,omitempty"`
+	Error   string                 `json:"error,omitempty"`
+	Success bool                   `json:"success"`
 }
 
 // ToolListResponse is the response for listing available tools
