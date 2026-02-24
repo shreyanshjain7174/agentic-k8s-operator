@@ -57,3 +57,13 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Make GHCR package public
+        run: |
+          echo "Making GHCR package public..."
+          curl -X PATCH \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/user/packages/container/agentic-operator/access \
+            -d '{"visibility":"public"}' \
+            || echo "Package public access may already be set"
