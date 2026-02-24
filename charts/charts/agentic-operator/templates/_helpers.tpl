@@ -16,3 +16,11 @@ helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version }}
 app.kubernetes.io/name: agentic-operator
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{- define "agentic-operator-sub.serviceAccountName" -}}
+{{- printf "%s-operator" (include "agentic-operator-sub.fullname" .) }}
+{{- end }}
+
+{{- define "agentic-operator-sub.licenseName" -}}
+{{- printf "%s-license" (include "agentic-operator-sub.fullname" .) }}
+{{- end }}
