@@ -15,7 +15,7 @@ spec:
       labels:
         {{- include "agentic-operator-sub.labels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ .Release.Name }}-agentic-operator-operator
+      serviceAccountName: {{ include "agentic-operator-sub.serviceAccountName" . }}
       terminationGracePeriodSeconds: 10
       containers:
         - name: operator
@@ -43,7 +43,7 @@ spec:
             {{- end }}
           envFrom:
             - secretRef:
-                name: {{ .Release.Name }}-license
+                name: {{ include "agentic-operator-sub.licenseName" . }}
                 optional: false
           ports:
             - name: http
