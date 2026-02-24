@@ -17,6 +17,8 @@ import os
 import litellm
 from litellm import completion
 
+from agents.utils.credential_sanitizer import sanitize_credentials
+
 logger = logging.getLogger(__name__)
 
 

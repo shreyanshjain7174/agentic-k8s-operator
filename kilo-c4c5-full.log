@@ -1,0 +1,112 @@
+[0m
+
+[0m> code · minimax/minimax-m2.5:free
+[0m✱ [0mGlob "agents/agents.py"[90m 0 matches[0m
+[0m✱ [0mGlob "agents/tools/litellm_client.py"[90m 1 match[0m
+[0m✱ [0mGlob "**/logging*.py"[90m 0 matches[0m
+[0m✱ [0mGlob "**/*.py"[90m 17 matches[0m
+[0m✱ [0mGlob "agents/*.py"[90m 2 matches[0m
+[0m→ [0mRead agents/tools/litellm_client.py
+[0m→ [0mRead agents/utils/credential_sanitizer.py
+[0m→ [0mRead agents/entrypoint.py
+[0m✱ [0mGrep "logging\.getLogger|logger\.(info|debug|warning|error)"[90m 78 matches[0m
+[0m✱ [0mGlob "agents/tests/test_*.py"[90m 4 matches[0m
+[0m→ [0mRead agents/tests/test_state.py
+[0m→ [0mRead agents/utils/__init__.py
+[0m[0m# [0mTodos[ ] Add sanitize_dict to utils exports
+[ ] Create test file for credential sanitizer
+[ ] Fix litellm_client logging that may leak credentials
+[ ] Verify sanitizer integration in logging pipeline
+
+[0m
+
+[0m← [0mEdit agents/utils/__init__.py
+Index: /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/utils/__init__.py
+===================================================================
+--- /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/utils/__init__.py
++++ /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/utils/__init__.py
+@@ -1,13 +1,17 @@
+ """Utility modules for agents."""
+ 
+ from agents.utils.credential_sanitizer import (
+     sanitize_credentials,
++    sanitize_dict,
+     SanitizingLogFilter,
++    SanitizingFormatter,
+     setup_sanitizing_logger,
+ )
+ 
+ __all__ = [
+     "sanitize_credentials",
++    "sanitize_dict",
+     "SanitizingLogFilter",
++    "SanitizingFormatter",
+     "setup_sanitizing_logger",
+ ]
+[0m
+
+[0m$ [0mls -la /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/utils/total 24
+drwxr-xr-x@  4 sunny  staff   128 Feb 24 07:43 .
+drwxr-xr-x@ 13 sunny  staff   416 Feb 24 07:41 ..
+-rw-r--r--@  1 sunny  staff   358 Feb 24 07:49 __init__.py
+-rw-r--r--@  1 sunny  staff  7211 Feb 24 07:43 credential_sanitizer.py
+[0m
+
+[0m# [0mTodos[x] Add sanitize_dict to utils exports
+[ ] Create test file for credential sanitizer
+[ ] Fix litellm_client logging that may leak credentials
+[ ] Verify sanitizer integration in logging pipeline
+[0m
+
+[0m← [0mWrite agents/tests/test_credential_sanitizer.py[0m
+
+
+Wrote file successfully.
+
+LSP errors detected in other files:
+<diagnostics file="/Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/tools/litellm_client.py">
+ERROR [17:8] Import "litellm" could not be resolved
+ERROR [18:6] Import "litellm" could not be resolved
+</diagnostics>
+
+LSP errors detected in other files:
+<diagnostics file="/Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/entrypoint.py">
+ERROR [18:6] Import "agents.graph.workflow" could not be resolved
+ERROR [19:6] Import "agents.utils.credential_sanitizer" could not be resolved
+</diagnostics>
+
+LSP errors detected in other files:
+<diagnostics file="/Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/tests/test_state.py">
+ERROR [5:8] Import "pytest" could not be resolved
+ERROR [6:6] Import "agents.graph.state" could not be resolved
+</diagnostics>
+
+LSP errors detected in other files:
+<diagnostics file="/Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/utils/__init__.py">
+ERROR [3:6] Import "agents.utils.credential_sanitizer" could not be resolved
+</diagnostics>[0m# [0mTodos
+
+
+[0m[x] Add sanitize_dict to utils exports
+[x] Create test file for credential sanitizer
+[ ] Fix litellm_client logging that may leak credentials
+[ ] Verify sanitizer integration in logging pipeline[0m→ [0mRead agents/tools/litellm_client.py[90m [limit=30, offset=60][0m
+[0m
+
+[0m← [0mEdit agents/tools/litellm_client.py
+
+[0mIndex: /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/tools/litellm_client.py
+===================================================================
+--- /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/tools/litellm_client.py
++++ /Users/sunny/.openclaw/workspace/agentic-k8s-operator/agents/tools/litellm_client.py
+@@ -16,8 +16,10 @@
+ 
+ import litellm
+ from litellm import completion
+ 
++from agents.utils.credential_sanitizer import sanitize_credentials
++
+ logger = logging.getLogger(__name__)
+ 
+ 
+ class LiteLLMClientError(Exception):

@@ -16,12 +16,28 @@ import sys
 from typing import List
 
 from agents.graph.workflow import build_workflow, AgentWorkflowError
+from agents.utils.credential_sanitizer import SanitizingFormatter
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+
+def setup_logging() -> None:
+    """Configure logging with credential sanitization."""
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.INFO)
+    
+    for handler in root_logger.handlers[:]:
+        root_logger.removeHandler(handler)
+    
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    
+    formatter = SanitizingFormatter(
+        fmt="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+    handler.setFormatter(formatter)
+    root_logger.addHandler(handler)
+
+
+setup_logging()
 logger = logging.getLogger(__name__)
 
 

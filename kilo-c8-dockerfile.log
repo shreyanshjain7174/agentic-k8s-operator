@@ -1,0 +1,28 @@
+[0m
+> code · minimax/minimax-m2.5:free
+[0m
+[0m✱ [0mGlob "**/*.go"[90m 14 matches[0m
+[0m✱ [0mGlob "**/go.mod"[90m 1 match[0m
+[0m→ [0mRead go.mod
+[0m→ [0mRead cmd/main.go
+[0m
+[0m← [0mWrite Dockerfile
+Wrote file successfully.
+[0m
+[0m→ [0mRead Dockerfile
+[0m
+[0m← [0mWrite Dockerfile
+Wrote file successfully.
+[0m
+[0m→ [0mRead Dockerfile
+Created `Dockerfile` with:
+
+- **Multi-stage build**: Builder stage compiles the Go code, final stage is minimal distroless image
+- **Distroless base**: `gcr.io/distroless/static:nonroot` (~5MB image)
+- **Non-root user**: Runs as `nonroot` user (UID 1000, GID 1000) built into distroless
+- **File permissions**: Binary set to `chmod 500` (owner read+execute only)
+- **Go build steps**: 
+  - CGO disabled for static binary
+  - Stripped symbols (`-s -w`)
+  - Trimpath for reproducible builds
+  - Dependency caching via go.mod/go.sum
