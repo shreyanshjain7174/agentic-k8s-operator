@@ -30,19 +30,19 @@ type PolicyEvaluator struct {
 
 // EvaluationInput is the input to policy evaluation
 type EvaluationInput struct {
-	ActionType           string  `json:"action_type"`
-	Confidence           float64 `json:"confidence"`
-	ClusterHealthScore   float64 `json:"cluster_health_score"`
-	OPAPolicyMode        string  `json:"opa_policy_mode"` // "strict" or "permissive"
+	ActionType         string  `json:"action_type"`
+	Confidence         float64 `json:"confidence"`
+	ClusterHealthScore float64 `json:"cluster_health_score"`
+	OPAPolicyMode      string  `json:"opa_policy_mode"` // "strict" or "permissive"
 }
 
 // EvaluationResult is the output of policy evaluation
 type EvaluationResult struct {
-	Allowed      bool      `json:"allowed"`
-	Confidence   string    `json:"confidence"` // "HIGH", "MEDIUM", "LOW"
-	ClusterStatus string   `json:"cluster_status"` // "HEALTHY", "DEGRADED", "CRITICAL"
-	ActionCategory string `json:"action_category"` // "DESTRUCTIVE", "READONLY", "MODIFICATION"
-	Reasons      []string `json:"reasons"` // Why it was allowed or denied
+	Allowed        bool     `json:"allowed"`
+	Confidence     string   `json:"confidence"`      // "HIGH", "MEDIUM", "LOW"
+	ClusterStatus  string   `json:"cluster_status"`  // "HEALTHY", "DEGRADED", "CRITICAL"
+	ActionCategory string   `json:"action_category"` // "DESTRUCTIVE", "READONLY", "MODIFICATION"
+	Reasons        []string `json:"reasons"`         // Why it was allowed or denied
 }
 
 // NewPolicyEvaluator creates a new OPA policy evaluator
@@ -60,7 +60,7 @@ func (pe *PolicyEvaluator) Evaluate(input *EvaluationInput) *EvaluationResult {
 	}
 
 	// Apply policy rules (simulating OPA Rego rules)
-	
+
 	// Rule 5: Allow read-only operations unconditionally (check FIRST)
 	if isReadOnlyAction(input.ActionType) {
 		result.Allowed = true
@@ -119,26 +119,26 @@ func (pe *PolicyEvaluator) Evaluate(input *EvaluationInput) *EvaluationResult {
 // EvaluateStrict is stricter evaluation (all-or-nothing)
 func (pe *PolicyEvaluator) EvaluateStrict(input *EvaluationInput) *EvaluationResult {
 	result := pe.Evaluate(input)
-	
+
 	// In strict mode, only HIGH confidence is auto-approved
 	if result.Confidence != "HIGH" && result.ActionCategory != "READONLY" {
 		result.Allowed = false
 		result.Reasons = append(result.Reasons, "Strict mode: only HIGH confidence or read-only actions allowed")
 	}
-	
+
 	return result
 }
 
 // EvaluatePermissive is more lenient evaluation
 func (pe *PolicyEvaluator) EvaluatePermissive(input *EvaluationInput) *EvaluationResult {
 	result := pe.Evaluate(input)
-	
+
 	// In permissive mode, allow MEDIUM confidence actions
 	if result.Confidence == "MEDIUM" && input.ClusterHealthScore >= 50 {
 		result.Allowed = true
 		result.Reasons = []string{"Permissive mode: MEDIUM confidence allowed"}
 	}
-	
+
 	return result
 }
 
@@ -147,42 +147,42 @@ func (pe *PolicyEvaluator) EvaluatePermissive(input *EvaluationInput) *Evaluatio
 func isDestructiveAction(action string) bool {
 	destructive := []string{"delete", "remove", "purge", "drop", "reset", "cleanup", "clear"}
 	actionLower := strings.ToLower(action)
-	
+
 	// Use exact match only (no substring matching to avoid false positives)
 	for _, d := range destructive {
 		if actionLower == d {
 			return true
 		}
 	}
-	
+
 	// Also check for destructive as first action in compound actions (e.g., "delete_and_restore")
 	for _, d := range destructive {
 		if strings.HasPrefix(actionLower, d+"_") {
 			return true
 		}
 	}
-	
+
 	return false
 }
 
 func isReadOnlyAction(action string) bool {
 	readonly := []string{"get", "list", "describe", "monitor", "analyze", "read", "check", "validate"}
 	actionLower := strings.ToLower(action)
-	
+
 	// Use exact match only (no substring matching to avoid false positives)
 	for _, r := range readonly {
 		if actionLower == r {
 			return true
 		}
 	}
-	
+
 	// Also check for readonly as first action in compound actions (e.g., "get_and_optimize")
 	for _, r := range readonly {
 		if strings.HasPrefix(actionLower, r+"_") {
 			return true
 		}
 	}
-	
+
 	return false
 }
 

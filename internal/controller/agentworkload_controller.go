@@ -124,7 +124,7 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 
 	// Step 4: Evaluate action safety using OPA
 	now := metav1.Now()
-	
+
 	// Extract proposal fields safely (use comma-ok idiom to prevent panics)
 	actionName, ok := proposal["action"].(string)
 	if !ok {
@@ -169,13 +169,13 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Create OPA evaluator and evaluate action
 	// Use the appropriate evaluation mode based on policy setting
 	evaluator := opa.NewPolicyEvaluator()
-	
+
 	// Determine OPA policy mode with nil guard (default to strict if nil)
 	opaPolicyMode := "strict"
 	if workload.Spec.OPAPolicy != nil {
 		opaPolicyMode = *workload.Spec.OPAPolicy
 	}
-	
+
 	opaInput := &opa.EvaluationInput{
 		ActionType:         actionName,
 		Confidence:         confidence,
@@ -277,7 +277,7 @@ func pruneActions(actions []agenticv1alpha1.Action, maxSize int) []agenticv1alph
 	if len(actions) <= maxSize {
 		return actions
 	}
-	
+
 	// Keep only the most recent maxSize actions (newest are at the end after append)
 	// So we need to trim from the beginning
 	return actions[len(actions)-maxSize:]

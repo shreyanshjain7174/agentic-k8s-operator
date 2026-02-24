@@ -182,13 +182,13 @@ func (wm *WorkflowManager) CreateArgoWorkflow(
 	// Build workflow spec using WorkflowTemplate
 	// This uses Argo's parameter substitution: {{inputs.parameters.job_id}} etc.
 	// NOTE: We set fields individually to avoid unstructured deep copy issues with []map[string]string
-	
+
 	// Set workflowTemplateRef
 	if err := unstructured.SetNestedField(workflow.Object, DefaultWorkflowTemplate, "spec", "workflowTemplateRef", "name"); err != nil {
 		log.Error(err, "failed to set workflowTemplateRef.name")
 		return nil, err
 	}
-	
+
 	// Set parameters as []interface{} to avoid deep copy panic
 	parametersData := []interface{}{
 		map[string]interface{}{"name": "job_id", "value": params.JobID},
@@ -199,7 +199,7 @@ func (wm *WorkflowManager) CreateArgoWorkflow(
 		map[string]interface{}{"name": "litellm_url", "value": params.LiteLLMURL},
 		map[string]interface{}{"name": "postgres_dsn", "value": params.PostgresDSN},
 	}
-	
+
 	if err := unstructured.SetNestedField(workflow.Object, parametersData, "spec", "arguments", "parameters"); err != nil {
 		log.Error(err, "failed to set arguments.parameters")
 		return nil, err
