@@ -1,0 +1,32 @@
+# Stage 1: Builder
+FROM python:3.12-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY agents/requirements.txt .
+
+RUN pip install --no-cache-dir --target=/app/deps -r requirements.txt \
+    && pip install --no-cache-dir --target=/app/deps gunicorn
+
+COPY agents/ ./agents/
+
+# Stage 2: Distroless Runtime (minimal attack surface)
+FROM gcr.io/distroless/python3-debian12:nonroot AS distroless-runtime
+
+WORKDIR /app
+
+COPY --from=builder --chown=nonroot:nonroot /app/deps /app/deps
+COPY --from=builder --chown=nonroot:nonroot /app/agents /app/agents
+
+USER nonroot:nonroot
+
+ENV PYTHONPATH=/app/deps:$PYTHONPATH
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD ["/app/deps/bin/python", "-c", "import sys; sys.exit(0)"]
+
+ENTRYPOINT ["python", "-m", "agents.entrypoint"]

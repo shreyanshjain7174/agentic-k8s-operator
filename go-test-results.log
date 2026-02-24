@@ -1,0 +1,212 @@
+=== RUN   TestWebhook_RejectInvalidWorkloadType
+    agentworkload_webhook_test.go:37: ✅ Correctly rejected:  "" is invalid: spec: Internal error: workloadType must be one of [generic ceph minio postgres aws kubernetes], got "invalid_type"
+--- PASS: TestWebhook_RejectInvalidWorkloadType (0.00s)
+=== RUN   TestWebhook_RejectInvalidEndpoint
+    agentworkload_webhook_test.go:55: ✅ Correctly rejected:  "" is invalid: spec: Internal error: mcpServerEndpoint scheme must be http or https, got ""
+--- PASS: TestWebhook_RejectInvalidEndpoint (0.00s)
+=== RUN   TestWebhook_RejectInvalidThreshold
+    agentworkload_webhook_test.go:74: ✅ Correctly rejected:  "" is invalid: spec: Internal error: autoApproveThreshold must be between 0.0 and 1.0, got 1.5
+--- PASS: TestWebhook_RejectInvalidThreshold (0.00s)
+=== RUN   TestWebhook_AcceptValidSpec
+    agentworkload_webhook_test.go:94: ✅ Valid spec accepted
+--- PASS: TestWebhook_AcceptValidSpec (0.00s)
+=== RUN   TestWebhook_RejectEmptyObjective
+    agentworkload_webhook_test.go:112: ✅ Correctly rejected:  "" is invalid: spec: Internal error: objective must not be empty
+--- PASS: TestWebhook_RejectEmptyObjective (0.00s)
+=== RUN   TestWebhook_RejectEmptyAgents
+    agentworkload_webhook_test.go:130: ✅ Correctly rejected:  "" is invalid: spec: Internal error: agents list must not be empty
+--- PASS: TestWebhook_RejectEmptyAgents (0.00s)
+=== RUN   TestWebhook_RejectObjectiveTooLong
+    agentworkload_webhook_test.go:153: ✅ Correctly rejected:  "" is invalid: spec: Internal error: objective must be ≤ 1000 characters, got 1001
+--- PASS: TestWebhook_RejectObjectiveTooLong (0.00s)
+=== RUN   TestWebhook_AcceptAllWorkloadTypes
+    agentworkload_webhook_test.go:175: ✅ All workload types accepted
+--- PASS: TestWebhook_AcceptAllWorkloadTypes (0.00s)
+=== RUN   TestWebhook_DefaultAutoApproveThreshold
+    agentworkload_webhook_test.go:196: ✅ Default AutoApproveThreshold set correctly
+--- PASS: TestWebhook_DefaultAutoApproveThreshold (0.00s)
+=== RUN   TestWebhook_DefaultOPAPolicy
+    agentworkload_webhook_test.go:218: ✅ Default OPAPolicy set correctly
+--- PASS: TestWebhook_DefaultOPAPolicy (0.00s)
+=== RUN   TestValidateThreshold
+--- PASS: TestValidateThreshold (0.00s)
+=== RUN   TestValidateMCPEndpoint
+--- PASS: TestValidateMCPEndpoint (0.00s)
+PASS
+ok  	github.com/shreyansh/agentic-operator/api/v1alpha1	0.682s
+?   	github.com/shreyansh/agentic-operator/cmd	[no test files]
+=== RUN   TestControllers
+Running Suite: Controller Suite - /Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller
+===========================================================================================================
+Random Seed: [1m1771899493[0m
+
+Will run [1m1[0m of [1m1[0m specs
+[38;5;243m------------------------------[0m
+[38;5;9m[BeforeSuite] [FAILED] [0.018 seconds][0m
+[38;5;9m[1m[BeforeSuite] [0m
+[38;5;243m/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:57[0m
+
+  [38;5;243mTimeline >>[0m
+  [1mSTEP:[0m bootstrapping test environment [38;5;243m@ 02/24/26 07:48:13.817[0m
+  2026-02-24T07:48:13+05:30	ERROR	Failed to read directory	{"path": "../../bin/k8s", "error": "open ../../bin/k8s: no such file or directory"}
+  github.com/shreyansh/agentic-operator/internal/controller.getFirstFoundEnvTestBinaryDir
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:109
+  github.com/shreyansh/agentic-operator/internal/controller.init.func2
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:75
+  github.com/onsi/ginkgo/v2/internal.extractBodyFunction.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/node.go:524
+  github.com/onsi/ginkgo/v2/internal.(*Suite).runNode.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/suite.go:942
+  2026-02-24T07:48:13+05:30	DEBUG	controller-runtime.test-env	starting control plane
+  2026-02-24T07:48:13+05:30	ERROR	controller-runtime.test-env	unable to start the controlplane	{"tries": 0, "error": "fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory"}
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).startControlPlane
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:391
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).Start
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:304
+  github.com/shreyansh/agentic-operator/internal/controller.init.func2
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:80
+  github.com/onsi/ginkgo/v2/internal.extractBodyFunction.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/node.go:524
+  github.com/onsi/ginkgo/v2/internal.(*Suite).runNode.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/suite.go:942
+  2026-02-24T07:48:13+05:30	ERROR	controller-runtime.test-env	unable to start the controlplane	{"tries": 1, "error": "fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory"}
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).startControlPlane
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:391
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).Start
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:304
+  github.com/shreyansh/agentic-operator/internal/controller.init.func2
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:80
+  github.com/onsi/ginkgo/v2/internal.extractBodyFunction.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/node.go:524
+  github.com/onsi/ginkgo/v2/internal.(*Suite).runNode.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/suite.go:942
+  2026-02-24T07:48:13+05:30	ERROR	controller-runtime.test-env	unable to start the controlplane	{"tries": 2, "error": "fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory"}
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).startControlPlane
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:391
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).Start
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:304
+  github.com/shreyansh/agentic-operator/internal/controller.init.func2
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:80
+  github.com/onsi/ginkgo/v2/internal.extractBodyFunction.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/node.go:524
+  github.com/onsi/ginkgo/v2/internal.(*Suite).runNode.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/suite.go:942
+  2026-02-24T07:48:13+05:30	ERROR	controller-runtime.test-env	unable to start the controlplane	{"tries": 3, "error": "fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory"}
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).startControlPlane
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:391
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).Start
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:304
+  github.com/shreyansh/agentic-operator/internal/controller.init.func2
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:80
+  github.com/onsi/ginkgo/v2/internal.extractBodyFunction.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/node.go:524
+  github.com/onsi/ginkgo/v2/internal.(*Suite).runNode.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/suite.go:942
+  2026-02-24T07:48:13+05:30	ERROR	controller-runtime.test-env	unable to start the controlplane	{"tries": 4, "error": "fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory"}
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).startControlPlane
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:391
+  sigs.k8s.io/controller-runtime/pkg/envtest.(*Environment).Start
+  	/Users/sunny/go/pkg/mod/sigs.k8s.io/controller-runtime@v0.23.1/pkg/envtest/server.go:304
+  github.com/shreyansh/agentic-operator/internal/controller.init.func2
+  	/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:80
+  github.com/onsi/ginkgo/v2/internal.extractBodyFunction.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/node.go:524
+  github.com/onsi/ginkgo/v2/internal.(*Suite).runNode.func3
+  	/Users/sunny/go/pkg/mod/github.com/onsi/ginkgo/v2@v2.27.2/internal/suite.go:942
+  [38;5;9m[FAILED][0m in [BeforeSuite] - /Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:81 [38;5;243m@ 02/24/26 07:48:13.835[0m
+  [38;5;243m<< Timeline[0m
+
+  [38;5;9m[FAILED] Unexpected error:
+      <*fmt.wrapError | 0x14000480920>: 
+      unable to start control plane itself: failed to start the controlplane. retried 5 times: fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory
+      {
+          msg: "unable to start control plane itself: failed to start the controlplane. retried 5 times: fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory",
+          err: <*fmt.wrapError | 0x14000480900>{
+              msg: "failed to start the controlplane. retried 5 times: fork/exec /usr/local/kubebuilder/bin/etcd: no such file or directory",
+              err: <*fs.PathError | 0x140003c8a50>{
+                  Op: "fork/exec",
+                  Path: "/usr/local/kubebuilder/bin/etcd",
+                  Err: <syscall.Errno>0x2,
+              },
+          },
+      }
+  occurred[0m
+  [38;5;9mIn [1m[BeforeSuite][0m[38;5;9m at: [1m/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:81[0m [38;5;243m@ 02/24/26 07:48:13.835[0m
+[38;5;243m------------------------------[0m
+
+[38;5;9m[1mSummarizing 1 Failure:[0m
+  [38;5;9m[FAIL][0m [38;5;9m[1m[BeforeSuite] [0m
+  [38;5;243m/Users/sunny/.openclaw/workspace/agentic-k8s-operator/internal/controller/suite_test.go:81[0m
+
+[38;5;9m[1mRan 0 of 1 Specs in 0.018 seconds[0m
+[38;5;9m[1mFAIL![0m -- [38;5;14m[1mA BeforeSuite node failed so all tests were skipped.[0m
+--- FAIL: TestControllers (0.02s)
+FAIL
+FAIL	github.com/shreyansh/agentic-operator/internal/controller	1.253s
+=== RUN   TestMCPClient_ListTools
+    client_test.go:52: Successfully listed 4 tools
+--- PASS: TestMCPClient_ListTools (0.11s)
+=== RUN   TestMCPClient_CallTool_GetStatus
+    client_test.go:77: Successfully called get_status: map[metrics:map[cpu_usage:0.42 memory_usage:0.65 request_rate:1234] status:healthy timestamp:2026-02-23T20:00:00Z]
+--- PASS: TestMCPClient_CallTool_GetStatus (0.10s)
+=== RUN   TestMCPClient_CallTool_ProposeAction
+    client_test.go:104: Successfully proposed action: map[action:optimize_resources confidence:0.87 description:Reduce CPU request limits based on observed usage impact:low]
+--- PASS: TestMCPClient_CallTool_ProposeAction (0.10s)
+=== RUN   TestMCPClient_CallTool_InvalidTool
+    client_test.go:123: Successfully caught error for invalid tool: MCP server returned status 404: {"tool":"invalid_tool","error":"Unknown tool: invalid_tool","success":false}
+--- PASS: TestMCPClient_CallTool_InvalidTool (0.10s)
+=== RUN   TestMCPClient_ConnectionError
+    client_test.go:139: Successfully caught connection error: failed to list tools: Get "http://localhost:19999/tools": dial tcp [::1]:19999: connect: connection refused
+--- PASS: TestMCPClient_ConnectionError (0.00s)
+=== RUN   TestToolRequest_Marshalling
+    client_test.go:161: Successfully marshalled request: {"tool":"test_tool","params":{"param1":"value1","param2":42}}
+--- PASS: TestToolRequest_Marshalling (0.00s)
+PASS
+ok  	github.com/shreyansh/agentic-operator/pkg/mcp	(cached)
+=== RUN   TestOPA_AllowHighConfidence
+    evaluator_test.go:39: ✅ High confidence action allowed: [High confidence (0.99) action allowed]
+--- PASS: TestOPA_AllowHighConfidence (0.00s)
+=== RUN   TestOPA_DenyLowConfidence
+    evaluator_test.go:57: ✅ Low confidence action denied: [Low confidence (0.80) action requires human approval (threshold: 0.95)]
+--- PASS: TestOPA_DenyLowConfidence (0.00s)
+=== RUN   TestOPA_DenyDestructiveWithLowConfidence
+    evaluator_test.go:75: ✅ Destructive action denied: [Destructive action 'delete_volume' requires confidence >= 0.99, got 0.95]
+--- PASS: TestOPA_DenyDestructiveWithLowConfidence (0.00s)
+=== RUN   TestOPA_AllowReadOnlyActions
+    evaluator_test.go:97: ✅ All read-only actions allowed unconditionally
+--- PASS: TestOPA_AllowReadOnlyActions (0.00s)
+=== RUN   TestOPA_DenyDuringDegradation
+    evaluator_test.go:115: ✅ Action denied during degradation: [Cluster health is degraded (30.0%). Only read-only operations allowed]
+--- PASS: TestOPA_DenyDuringDegradation (0.00s)
+=== RUN   TestOPA_CriticalCondition
+    evaluator_test.go:143: ✅ Critical condition handled correctly: [CRITICAL: Low confidence AND cluster degradation. Manual intervention required.]
+--- PASS: TestOPA_CriticalCondition (0.00s)
+=== RUN   TestOPA_StrictMode
+    evaluator_test.go:169: ✅ Strict mode correctly restricts MEDIUM confidence actions
+    evaluator_test.go:170:   Normal: false, Strict: false
+--- PASS: TestOPA_StrictMode (0.00s)
+=== RUN   TestOPA_PermissiveMode
+    evaluator_test.go:195: ✅ Permissive mode allows MEDIUM confidence actions
+    evaluator_test.go:196:   Normal: false, Permissive: true
+--- PASS: TestOPA_PermissiveMode (0.00s)
+=== RUN   TestOPA_ConfidenceAssessment
+    evaluator_test.go:218: ✅ Confidence assessment correct
+--- PASS: TestOPA_ConfidenceAssessment (0.00s)
+=== RUN   TestOPA_ClusterHealthAssessment
+    evaluator_test.go:240: ✅ Cluster health assessment correct
+--- PASS: TestOPA_ClusterHealthAssessment (0.00s)
+=== RUN   TestOPA_ActionCategoryDetection
+    evaluator_test.go:264: ✅ Action category detection correct
+--- PASS: TestOPA_ActionCategoryDetection (0.00s)
+=== RUN   TestOPA_DestructiveActionDetection
+    evaluator_test.go:282: ✅ Destructive action detection correct
+--- PASS: TestOPA_DestructiveActionDetection (0.00s)
+=== RUN   TestOPA_ReadOnlyActionDetection
+    evaluator_test.go:300: ✅ Read-only action detection correct
+--- PASS: TestOPA_ReadOnlyActionDetection (0.00s)
+=== RUN   TestOPA_ConfidenceConversion
+    evaluator_test.go:317: ✅ Confidence conversion correct
+--- PASS: TestOPA_ConfidenceConversion (0.00s)
+PASS
+ok  	github.com/shreyansh/agentic-operator/pkg/opa	(cached)
+FAIL

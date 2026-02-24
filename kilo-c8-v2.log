@@ -1,0 +1,32 @@
+
+
+[0m
+> code · z-ai/glm-5:free[0m[0m✱ [0mGlob "**/*.dockerfile"[90m 0 matches[0m
+[0m✱ [0mGlob "**/Dockerfile*"[90m 1 match[0m
+[0m→ [0mRead Dockerfile
+[0m✱ [0mGlob "**/go.mod"[90m 0 matches[0m
+[0m✱ [0mGlob "**/Cargo.toml"[90m 0 matches[0m
+[0m✱ [0mGlob "**/package.json"[90m 0 matches[0m
+[0m→ [0mRead requirements.txt
+[0m
+Wrote file successfully.
+[0m← [0mWrite Dockerfile
+
+[0m[0m← [0mWrite Dockerfile.distroless
+
+[0mWrote file successfully.
+[0m→ [0mRead Dockerfile
+Created two Dockerfiles:
+
+**`Dockerfile`** - Multi-stage build with non-root user:
+- Stage 1: Builder for compiling dependencies
+- Stage 2: Runtime with non-root user (UID 1000)
+- Proper file permissions (`chmod 755` for app, `chmod 700` for secrets)
+- Runs as `appuser` via `USER appuser`
+
+**`Dockerfile.distroless`** - Alternative with distroless base image:
+- Uses `gcr.io/distroless/python3-debian12:nonroot`
+- Built-in nonroot user (UID/GID 65532)
+- Minimal attack surface
+
+**Note**: Playwright requires browser dependencies which may need additional setup in distroless. Use `Dockerfile` for Playwright compatibility or `Dockerfile.distroless` for maximum security without browser automation.
