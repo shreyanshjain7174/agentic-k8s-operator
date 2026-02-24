@@ -24,7 +24,6 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes/scheme"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 
 	agenticv1alpha1 "github.com/shreyansh/agentic-operator/api/v1alpha1"
@@ -41,6 +40,10 @@ func TestWorkflowManager_CreateArgoWorkflow(t *testing.T) {
 	wm := NewWorkflowManager(client, s)
 
 	// Create test AgentWorkload
+	workloadType := "generic"
+	mcpEndpoint := "http://mcp-server:8000"
+	objective := "test objective"
+	
 	workload := &agenticv1alpha1.AgentWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-job-001",
@@ -48,9 +51,9 @@ func TestWorkflowManager_CreateArgoWorkflow(t *testing.T) {
 			UID:       "test-uid-12345",
 		},
 		Spec: agenticv1alpha1.AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://mcp-server:8000",
-			Objective:         "test objective",
+			WorkloadType:      &workloadType,
+			MCPServerEndpoint: &mcpEndpoint,
+			Objective:         &objective,
 		},
 	}
 
@@ -432,6 +435,10 @@ func BenchmarkWorkflowManager_CreateArgoWorkflow(b *testing.B) {
 	client := fake.NewClientBuilder().WithScheme(s).Build()
 	wm := NewWorkflowManager(client, s)
 
+	workloadType := "generic"
+	mcpEndpoint := "http://mcp:8000"
+	objective := "test"
+	
 	workload := &agenticv1alpha1.AgentWorkload{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "bench-job",
@@ -439,9 +446,9 @@ func BenchmarkWorkflowManager_CreateArgoWorkflow(b *testing.B) {
 			UID:       "bench-uid",
 		},
 		Spec: agenticv1alpha1.AgentWorkloadSpec{
-			WorkloadType:      "generic",
-			MCPServerEndpoint: "http://mcp:8000",
-			Objective:         "test",
+			WorkloadType:      &workloadType,
+			MCPServerEndpoint: &mcpEndpoint,
+			Objective:         &objective,
 		},
 	}
 
