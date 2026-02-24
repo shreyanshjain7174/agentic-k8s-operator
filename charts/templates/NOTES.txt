@@ -1,0 +1,66 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║            🤖  agentic-operator  v{{ .Chart.AppVersion }}  installed!                ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Release:   {{ .Release.Name }}
+Namespace: {{ include "agentic-operator.namespace" . }}
+Tier:      {{ .Values.license.tier | default "trial" | upper }}
+Seats:     {{ .Values.license.seats | default 1 }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMPONENTS ENABLED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  agentic-operator  → {{ if .Values.agenticOperator.enabled }}✅ enabled{{ else }}❌ disabled{{ end }} (port {{ .Values.agenticOperator.service.port }})
+  argo-workflows    → {{ if .Values.argo.enabled }}✅ enabled{{ else }}❌ disabled{{ end }} (port {{ .Values.argo.server.service.port }})
+  browserless       → {{ if .Values.browserless.enabled }}✅ enabled ({{ .Values.browserless.replicaCount }} replicas){{ else }}❌ disabled{{ end }}
+  litellm           → {{ if .Values.litellm.enabled }}✅ enabled ({{ .Values.litellm.replicaCount }} replicas){{ else }}❌ disabled{{ end }}
+  minio             → {{ if .Values.minio.enabled }}✅ enabled{{ else }}❌ disabled{{ end }}
+  postgresql        → {{ if .Values.postgresql.enabled }}✅ enabled{{ else }}❌ disabled{{ end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+QUICK START
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Check operator logs:
+   kubectl logs -n {{ include "agentic-operator.namespace" . }} \
+     -l app.kubernetes.io/name=agentic-operator -f
+
+2. Port-forward the operator API:
+   kubectl port-forward -n {{ include "agentic-operator.namespace" . }} \
+     svc/{{ .Release.Name }}-agentic-operator {{ .Values.agenticOperator.service.port }}:{{ .Values.agenticOperator.service.port }}
+   → http://localhost:{{ .Values.agenticOperator.service.port }}
+
+{{- if .Values.argo.enabled }}
+3. Port-forward Argo Workflows UI:
+   kubectl port-forward -n {{ include "agentic-operator.namespace" . }} \
+     svc/{{ .Release.Name }}-argo-workflows-server {{ .Values.argo.server.service.port }}:{{ .Values.argo.server.service.port }}
+   → http://localhost:{{ .Values.argo.server.service.port }}
+{{- end }}
+
+{{- if .Values.litellm.enabled }}
+4. Port-forward LiteLLM proxy:
+   kubectl port-forward -n {{ include "agentic-operator.namespace" . }} \
+     svc/{{ .Release.Name }}-litellm {{ .Values.litellm.service.port }}:{{ .Values.litellm.service.port }}
+   → http://localhost:{{ .Values.litellm.service.port }}
+{{- end }}
+
+{{- if .Values.minio.enabled }}
+5. Port-forward MinIO console:
+   kubectl port-forward -n {{ include "agentic-operator.namespace" . }} \
+     svc/{{ .Release.Name }}-minio {{ .Values.minio.service.consolePort }}:{{ .Values.minio.service.consolePort }}
+   → http://localhost:{{ .Values.minio.service.consolePort }}
+{{- end }}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+⚠  PRODUCTION CHECKLIST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  □ Replace default passwords (postgresql, minio)
+  □ Set a strong litellm.masterKey
+  □ Configure ingress TLS (ingress.tls)
+  □ Set resource limits appropriate for your cluster
+  □ Enable persistent storage (postgresql.persistence, minio.persistence)
+  □ Configure imagePullSecrets if using a private registry
+
+Thank you for using agentic-operator 🚀

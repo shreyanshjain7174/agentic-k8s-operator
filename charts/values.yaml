@@ -1,0 +1,231 @@
+# =============================================================================
+# agentic-operator — Master values.yaml (Single Source of Truth)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Global settings (inherited by all subcharts)
+# ---------------------------------------------------------------------------
+global:
+  imageRegistry: ""          # Override all image registries, e.g. "my.registry.io"
+  imagePullSecrets: []       # e.g. ["regcred"]
+  storageClass: ""           # Default StorageClass for PVCs
+  namespace: agentic-system  # Target namespace (also rendered by namespace.yaml)
+
+# ---------------------------------------------------------------------------
+# License (REQUIRED)
+# ---------------------------------------------------------------------------
+license:
+  key: ""           # REQUIRED — your license key
+  publicKey: ""     # REQUIRED — RSA public key used to verify the license
+  seats: 1          # Number of licensed concurrent agent seats (>= 1)
+  tier: trial       # One of: trial | basic | pro | enterprise
+
+# ---------------------------------------------------------------------------
+# Main agentic-operator subchart
+# ---------------------------------------------------------------------------
+agenticOperator:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: ghcr.io/shreyanshjain7174/agentic-operator
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+  service:
+    type: ClusterIP
+    port: 8080
+    metricsPort: 8081
+  leaderElection: true
+  logLevel: info
+  env: {}
+
+# ---------------------------------------------------------------------------
+# Argo Workflows
+# ---------------------------------------------------------------------------
+argo:
+  enabled: true
+  server:
+    replicaCount: 1
+    image:
+      repository: quay.io/argoproj/argocli
+      tag: v3.5.5
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+    service:
+      type: ClusterIP
+      port: 2746
+  controller:
+    replicaCount: 1
+    image:
+      repository: quay.io/argoproj/workflow-controller
+      tag: v3.5.5
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: "100m"
+        memory: "128Mi"
+      limits:
+        cpu: "500m"
+        memory: "256Mi"
+  executor:
+    image:
+      repository: quay.io/argoproj/argoexec
+      tag: v3.5.5
+  namespace: ""   # defaults to global.namespace
+
+# ---------------------------------------------------------------------------
+# Browserless (CDP pool)
+# ---------------------------------------------------------------------------
+browserless:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/browserless/chromium
+    tag: latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+  service:
+    type: ClusterIP
+    port: 3000
+  concurrentSessions: 5
+  timeout: 30000       # ms
+  token: ""            # optional auth token
+
+# ---------------------------------------------------------------------------
+# LiteLLM proxy
+# ---------------------------------------------------------------------------
+litellm:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ghcr.io/berriai/litellm
+    tag: main-latest
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+  service:
+    type: ClusterIP
+    port: 4000
+  openaiKey: ""     # REQUIRED when litellm.enabled=true
+  masterKey: ""     # LiteLLM master API key (leave blank to auto-generate)
+  models: []        # Extra model definitions passed to config.yaml
+  # Example:
+  # models:
+  #   - model_name: gpt-4o
+  #     litellm_params:
+  #       model: openai/gpt-4o
+  #       api_key: "os.environ/OPENAI_API_KEY"
+
+# ---------------------------------------------------------------------------
+# MinIO (Object storage)
+# ---------------------------------------------------------------------------
+minio:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: minio/minio
+    tag: RELEASE.2024-06-13T22-53-53Z
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+  service:
+    type: ClusterIP
+    port: 9000
+    consolePort: 9001
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  rootUser: minioadmin
+  rootPassword: minioadmin   # Change in production!
+  defaultBuckets: "agent-artifacts,agent-logs"
+
+# ---------------------------------------------------------------------------
+# PostgreSQL (Durable state)
+# ---------------------------------------------------------------------------
+postgresql:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: postgres
+    tag: "16"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "512Mi"
+  service:
+    type: ClusterIP
+    port: 5432
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: ""
+  auth:
+    database: agentdb
+    username: agentuser
+    password: changeme   # Change in production!
+    postgresPassword: changeme
+
+# ---------------------------------------------------------------------------
+# Ingress (optional — routes to relevant services)
+# ---------------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: agentic-operator.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: agentic-operator
+          port: 8080
+    - host: argo.agentic-operator.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: argo-server
+          port: 2746
+    - host: litellm.agentic-operator.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: litellm
+          port: 4000
+  tls: []
+  # tls:
+  #   - secretName: agentic-operator-tls
+  #     hosts:
+  #       - agentic-operator.local

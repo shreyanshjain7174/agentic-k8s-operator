@@ -1,0 +1,41 @@
+apiVersion: v2
+name: agentic-operator
+description: AI-native Kubernetes operator for agent workloads
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - ai
+  - agents
+  - kubernetes
+  - operator
+  - llm
+home: https://github.com/shreyanshjain7174/agentic-k8s-operator
+maintainers:
+  - name: Shreyansh Jain
+    email: shreyansh@example.com
+dependencies:
+  - name: agentic-operator
+    version: "0.1.0"
+    repository: "file://charts/agentic-operator"
+    condition: agenticOperator.enabled
+  - name: argo-workflows
+    version: "0.1.0"
+    repository: "file://charts/argo-workflows"
+    condition: argo.enabled
+  - name: browserless
+    version: "0.1.0"
+    repository: "file://charts/browserless"
+    condition: browserless.enabled
+  - name: litellm
+    version: "0.1.0"
+    repository: "file://charts/litellm"
+    condition: litellm.enabled
+  - name: minio
+    version: "0.1.0"
+    repository: "file://charts/minio"
+    condition: minio.enabled
+  - name: postgresql
+    version: "0.1.0"
+    repository: "file://charts/postgresql"
+    condition: postgresql.enabled

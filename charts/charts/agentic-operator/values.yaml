@@ -1,0 +1,19 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/shreyanshjain7174/agentic-operator
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8080
+  metricsPort: 8081
+resources:
+  requests:
+    cpu: "250m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "512Mi"
+leaderElection: true
+logLevel: info
+env: {}

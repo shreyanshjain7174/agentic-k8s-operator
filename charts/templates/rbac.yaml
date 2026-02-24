@@ -1,0 +1,126 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "agentic-operator.serviceAccountName" . }}
+  namespace: {{ include "agentic-operator.namespace" . }}
+  labels:
+    {{- include "agentic-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rbac
+  annotations:
+    helm.sh/resource-policy: keep
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "agentic-operator.fullname" . }}-manager
+  labels:
+    {{- include "agentic-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rbac
+rules:
+  # Core resources
+  - apiGroups: [""]
+    resources:
+      - pods
+      - pods/log
+      - pods/status
+      - services
+      - endpoints
+      - persistentvolumeclaims
+      - events
+      - configmaps
+      - secrets
+      - namespaces
+      - serviceaccounts
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Apps
+  - apiGroups: ["apps"]
+    resources:
+      - deployments
+      - daemonsets
+      - replicasets
+      - statefulsets
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Batch / Jobs
+  - apiGroups: ["batch"]
+    resources:
+      - jobs
+      - cronjobs
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Argo Workflows
+  - apiGroups: ["argoproj.io"]
+    resources:
+      - workflows
+      - workflowtemplates
+      - cronworkflows
+      - clusterworkflowtemplates
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Custom resources (agentic-operator CRDs)
+  - apiGroups: ["agentic.io"]
+    resources: ["*"]
+    verbs: ["*"]
+  # RBAC (for sub-agent service accounts)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources:
+      - roles
+      - rolebindings
+      - clusterroles
+      - clusterrolebindings
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  # Metrics
+  - apiGroups: ["metrics.k8s.io"]
+    resources: ["pods", "nodes"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "agentic-operator.fullname" . }}-manager
+  labels:
+    {{- include "agentic-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "agentic-operator.fullname" . }}-manager
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "agentic-operator.serviceAccountName" . }}
+    namespace: {{ include "agentic-operator.namespace" . }}
+---
+# Leader-election Role (namespace-scoped)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "agentic-operator.fullname" . }}-leader-election
+  namespace: {{ include "agentic-operator.namespace" . }}
+  labels:
+    {{- include "agentic-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rbac
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "agentic-operator.fullname" . }}-leader-election
+  namespace: {{ include "agentic-operator.namespace" . }}
+  labels:
+    {{- include "agentic-operator.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "agentic-operator.fullname" . }}-leader-election
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "agentic-operator.serviceAccountName" . }}
+    namespace: {{ include "agentic-operator.namespace" . }}

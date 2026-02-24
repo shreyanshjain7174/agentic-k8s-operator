@@ -1,0 +1,18 @@
+replicaCount: 2
+image:
+  repository: ghcr.io/browserless/chromium
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 3000
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    cpu: "2000m"
+    memory: "2Gi"
+concurrentSessions: 5
+timeout: 30000
+token: ""
