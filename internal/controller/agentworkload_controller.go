@@ -18,9 +18,11 @@ package controller
 
 import (
 	"context"
+	"os"
 	"strconv"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -30,6 +32,7 @@ import (
 
 	agenticv1alpha1 "github.com/shreyansh/agentic-operator/api/v1alpha1"
 	"github.com/shreyansh/agentic-operator/pkg/argo"
+	"github.com/shreyansh/agentic-operator/pkg/license"
 	"github.com/shreyansh/agentic-operator/pkg/mcp"
 	"github.com/shreyansh/agentic-operator/pkg/opa"
 )
@@ -40,7 +43,8 @@ const maxActionsInStatus = 100
 // AgentWorkloadReconciler reconciles a AgentWorkload object
 type AgentWorkloadReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme    *runtime.Scheme
+	Validator *license.Validator // License validation (optional, can be nil)
 }
 
 // +kubebuilder:rbac:groups=agentic.ninerewards.io,resources=agentworkloads,verbs=get;list;watch;create;update;patch;delete
@@ -66,6 +70,43 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	log.Info("Reconciling AgentWorkload", "name", workload.Name)
+
+	// ========== LICENSE ENFORCEMENT ==========
+	// Check license validity BEFORE creating any workload
+	if r.Validator != nil {
+		licenseToken := os.Getenv("LICENSE_JWT")
+		if licenseToken == "" {
+			// Try to load from Secret if env var not set
+			var licenseSecret *corev1.Secret
+			err := r.Get(ctx, types.NamespacedName{Name: "agentic-license", Namespace: "agentic-system"}, licenseSecret)
+			if err == nil && licenseSecret != nil {
+				licenseToken = string(licenseSecret.Data["license.jwt"])
+			}
+		}
+
+		if licenseToken != "" {
+			// Count current workloads in cluster
+			var workloads agenticv1alpha1.AgentWorkloadList
+			if err := r.List(ctx, &workloads); err == nil {
+				currentCount := len(workloads.Items)
+
+				// Enforce license limits
+				if err := r.Validator.EnforceInReconciler(licenseToken, currentCount); err != nil {
+					log.Error(err, "license check failed")
+					workload.Status.Phase = "Failed"
+					if err := r.Status().Update(ctx, &workload); err != nil {
+						log.Error(err, "failed to update workload status")
+					}
+					// Don't requeue - license failure is terminal
+					return ctrl.Result{}, nil
+				}
+			} else {
+				log.Error(err, "failed to list workloads for license enforcement")
+			}
+		} else {
+			log.Info("No license found (running in dev mode)")
+		}
+	}
 
 	// Check if this is an Argo-orchestrated workload
 	if workload.Spec.Orchestration != nil && workload.Spec.Orchestration.Type != nil && *workload.Spec.Orchestration.Type == "argo" {
