@@ -155,16 +155,23 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	// Create OPA evaluator and evaluate action
 	// Use the appropriate evaluation mode based on policy setting
 	evaluator := opa.NewPolicyEvaluator()
+	
+	// Determine OPA policy mode with nil guard (default to strict if nil)
+	opaPolicyMode := "strict"
+	if workload.Spec.OPAPolicy != nil {
+		opaPolicyMode = *workload.Spec.OPAPolicy
+	}
+	
 	opaInput := &opa.EvaluationInput{
 		ActionType:         actionName,
 		Confidence:         confidence,
 		ClusterHealthScore: clusterHealth,
-		OPAPolicyMode:      *workload.Spec.OPAPolicy,
+		OPAPolicyMode:      opaPolicyMode,
 	}
 
 	// Apply mode-specific evaluation logic
 	var opaResult *opa.EvaluationResult
-	if *workload.Spec.OPAPolicy == "permissive" {
+	if opaPolicyMode == "permissive" {
 		opaResult = evaluator.EvaluatePermissive(opaInput)
 	} else {
 		// Default to strict mode
