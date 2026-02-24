@@ -185,6 +185,13 @@ func main() {
 		setupLog.Error(err, "Failed to create controller", "controller", "AgentWorkload")
 		os.Exit(1)
 	}
+
+	if os.Getenv("ENABLE_WEBHOOKS") != "false" {
+		if err := (&agenticv1alpha1.AgentWorkload{}).SetupWebhookWithManager(mgr); err != nil {
+			setupLog.Error(err, "Failed to setup webhook", "webhook", "AgentWorkload")
+			os.Exit(1)
+		}
+	}
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
