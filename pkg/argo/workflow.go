@@ -152,8 +152,11 @@ func (wm *WorkflowManager) CreateArgoWorkflow(
 	// Build workflow parameters from AgentWorkload spec
 	params := wm.buildWorkflowParameters(agentWorkload)
 
-	// Create Workflow object (unstructured for flexibility with Argo API versions)
-	workflow := &unstructured.Unstructured{}
+	// Create Workflow object with initialized Object map (CRITICAL: prevents nil map panic)
+	// The Object map MUST be initialized before using SetNestedField
+	workflow := &unstructured.Unstructured{
+		Object: make(map[string]interface{}),
+	}
 	workflow.SetAPIVersion(WorkflowGroupVersion)
 	workflow.SetKind(WorkflowKind)
 	workflow.SetName(agentWorkload.Name)
