@@ -1,28 +1,40 @@
-FROM python:3.12-slim
+# Stage 1: Builder
+FROM python:3.12-alpine AS builder
 
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache build-base
 
-# Copy requirements
 COPY agents/requirements.txt .
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --target=/app/deps -r requirements.txt
 
-# Copy agent code
-COPY agents/ ./agents/
+# Stage 2: Runtime
+FROM python:3.12-alpine AS runtime
 
-# Create directories for mounted secrets
-RUN mkdir -p /etc/secrets/llm-keys
+WORKDIR /app
 
-# Health check
+RUN apk add --no-cache curl \
+    && rm -rf /var/cache/apk/*
+
+RUN addgroup --gid 1000 appgroup \
+    && adduser --uid 1000 --ingroup appgroup --disabled-password --no-create-home appuser
+
+COPY --from=builder --chown=1000:1000 /app/deps /app/deps
+
+COPY --chown=1000:1000 agents/ ./agents/
+
+RUN mkdir -p /etc/secrets/llm-keys \
+    && chown -R 1000:1000 /app /etc/secrets/llm-keys \
+    && chmod -R 750 /app \
+    && chmod 700 /etc/secrets/llm-keys
+
+ENV PYTHONPATH=/app/deps:$PYTHONPATH \
+    PATH=/app/deps/bin:$PATH
+
+USER 1000:1000
+
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD python -c "import sys; sys.exit(0)" || exit 1
 
-# Entrypoint: receives JOB_ID and TARGET_URLS from Argo
 ENTRYPOINT ["python", "-m", "agents.entrypoint"]
