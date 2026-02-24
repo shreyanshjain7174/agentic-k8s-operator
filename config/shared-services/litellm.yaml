@@ -1,0 +1,238 @@
+---
+# LiteLLM Proxy Deployment
+# Provides unified LLM API with vision model support (GPT-4o, Claude, etc.)
+#
+# Key features:
+# - Single HTTP endpoint for all LLM models
+# - Vision model support (image → text analysis)
+# - Request rate limiting and caching
+# - API key management (supports multiple providers)
+#
+# HTTP API:
+#   POST http://litellm:8000/chat/completions
+#   POST http://litellm:8000/v1/chat/completions  (OpenAI-compatible)
+#
+# Usage (Python):
+#   import litellm
+#   response = litellm.completion(
+#       model="gpt-4o",
+#       messages=[{"role": "user", "content": image_data}]
+#   )
+#
+# Configuration:
+#   - OPENAI_API_KEY: Required (for GPT-4o vision calls)
+#   - RATE_LIMIT: Default 10 req/sec
+#   - CACHE_TTL: Default 3600 seconds (1 hour)
+apiVersion: v1
+kind: Secret
+metadata:
+  name: litellm-credentials
+  namespace: shared-services
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/part-of: agentic-k8s-operator
+type: Opaque
+stringData:
+  # IMPORTANT: Set OPENAI_API_KEY from your OpenAI account
+  # Default value is a placeholder - MUST be updated for production
+  openai-api-key: "sk-proj-CHANGE_ME_IN_PRODUCTION"
+  
+  # Optional: Other LLM provider keys
+  # anthropic-api-key: "sk-ant-..."
+  # vertexai-project: "..."
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: litellm-config
+  namespace: shared-services
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/part-of: agentic-k8s-operator
+data:
+  # LiteLLM proxy configuration
+  litellm_config.yaml: |
+    # LiteLLM Proxy Configuration
+    # Supports multiple LLM models with unified API
+    
+    model_list:
+      # GPT-4o: Vision model for screenshot analysis
+      - model_name: gpt-4o
+        litellm_params:
+          model: "gpt-4o"
+          api_key: "${OPENAI_API_KEY}"
+      
+      # Claude Opus: Alternative vision model
+      - model_name: claude-opus
+        litellm_params:
+          model: "claude-opus"
+          api_key: "${ANTHROPIC_API_KEY}"
+          optional: true
+    
+    # Rate limiting: Max tokens per minute
+    litellm_settings:
+      # Request timeout (seconds)
+      request_timeout: 60
+      
+      # Enable caching (in-memory)
+      cache:
+        type: "in_memory"
+        ttl: 3600  # 1 hour
+      
+      # Rate limiter config
+      rate_limiter:
+        enabled: true
+        legacy_behavior: false
+        max_tokens_per_min: 1000000
+        max_requests_per_min: 100
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: litellm
+  namespace: shared-services
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/part-of: agentic-k8s-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: litellm
+  
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: litellm
+        app.kubernetes.io/part-of: agentic-k8s-operator
+    
+    spec:
+      # Security context
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      
+      # Containers
+      containers:
+        - name: litellm
+          image: "ghcr.io/berriai/litellm:main-latest"
+          imagePullPolicy: IfNotPresent
+          
+          # Ports
+          ports:
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+          
+          # Environment: API keys and configuration
+          env:
+            # OpenAI API Key (CRITICAL: Must be set for GPT-4o)
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-credentials
+                  key: openai-api-key
+            
+            # Optional: Anthropic API Key
+            - name: ANTHROPIC_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: litellm-credentials
+                  key: openai-api-key
+                  optional: true
+            
+            # LiteLLM settings
+            - name: LITELLM_LOG
+              value: "DEBUG"
+            
+            - name: LITELLM_PROXY_PASS_THROUGH_ENDPOINT_STRINGS
+              value: "health,metrics"
+          
+          # Command: Start LiteLLM proxy
+          command:
+            - python
+            - -m
+            - litellm.proxy.server
+            - --config
+            - /etc/litellm/litellm_config.yaml
+          
+          # Volume mounts
+          volumeMounts:
+            - name: litellm-config
+              mountPath: /etc/litellm
+              readOnly: true
+            - name: tmp
+              mountPath: /tmp
+          
+          # Resource limits
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"
+              memory: "1Gi"
+          
+          # Security context
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          
+          # Liveness probe: Restart if LiteLLM becomes unresponsive
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          
+          # Readiness probe: Pod is ready to accept requests
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+      
+      # Volumes
+      volumes:
+        - name: litellm-config
+          configMap:
+            name: litellm-config
+            defaultMode: 0444
+        - name: tmp
+          emptyDir: {}
+
+---
+# Service: HTTP API
+# Exposes LiteLLM on port 8000 for agents to call
+apiVersion: v1
+kind: Service
+metadata:
+  name: litellm
+  namespace: shared-services
+  labels:
+    app.kubernetes.io/name: litellm
+    app.kubernetes.io/part-of: agentic-k8s-operator
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: litellm
+  
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP

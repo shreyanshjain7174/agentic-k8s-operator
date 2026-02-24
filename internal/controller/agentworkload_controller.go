@@ -29,6 +29,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
 	agenticv1alpha1 "github.com/shreyansh/agentic-operator/api/v1alpha1"
+	"github.com/shreyansh/agentic-operator/pkg/argo"
 	"github.com/shreyansh/agentic-operator/pkg/mcp"
 	"github.com/shreyansh/agentic-operator/pkg/opa"
 )
@@ -64,10 +65,19 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	log.Info("Reconciling AgentWorkload", "name", workload.Name, "workloadType", workload.Spec.WorkloadType)
+	log.Info("Reconciling AgentWorkload", "name", workload.Name)
+
+	// Check if this is an Argo-orchestrated workload
+	if workload.Spec.Orchestration != nil && workload.Spec.Orchestration.Type != nil && *workload.Spec.Orchestration.Type == "argo" {
+		return r.reconcileArgoWorkflow(ctx, &workload)
+	}
 
 	// Step 2: Connect to MCP server and fetch status
-	mcpClient := mcp.NewMCPClient(workload.Spec.MCPServerEndpoint)
+	mcpEndpoint := ""
+	if workload.Spec.MCPServerEndpoint != nil {
+		mcpEndpoint = *workload.Spec.MCPServerEndpoint
+	}
+	mcpClient := mcp.NewMCPClient(mcpEndpoint)
 
 	status, err := mcpClient.CallTool("get_status", map[string]interface{}{})
 	if err != nil {
@@ -91,8 +101,12 @@ func (r *AgentWorkloadReconciler) Reconcile(ctx context.Context, req ctrl.Reques
 	}
 
 	// Step 3: Call MCP to propose an action
+	objective := ""
+	if workload.Spec.Objective != nil {
+		objective = *workload.Spec.Objective
+	}
 	proposalParams := map[string]interface{}{
-		"objective": workload.Spec.Objective,
+		"objective": objective,
 		"status":    status,
 	}
 
@@ -267,6 +281,85 @@ func pruneActions(actions []agenticv1alpha1.Action, maxSize int) []agenticv1alph
 	// Keep only the most recent maxSize actions (newest are at the end after append)
 	// So we need to trim from the beginning
 	return actions[len(actions)-maxSize:]
+}
+
+// reconcileArgoWorkflow handles reconciliation for Argo-orchestrated workloads
+func (r *AgentWorkloadReconciler) reconcileArgoWorkflow(ctx context.Context, workload *agenticv1alpha1.AgentWorkload) (ctrl.Result, error) {
+	log := logf.FromContext(ctx)
+	log.Info("Reconciling Argo-orchestrated workload", "name", workload.Name)
+
+	// Initialize Argo workflow manager
+	wfManager := argo.NewWorkflowManager(r.Client, r.Scheme)
+
+	// Check if workflow already exists
+	if workload.Status.ArgoWorkflow != nil && workload.Status.ArgoWorkflow.Name != "" {
+		log.Info("Workflow already exists", "workflowName", workload.Status.ArgoWorkflow.Name)
+
+		// Get workflow status
+		wfStatus, err := wfManager.GetArgoWorkflowStatus(ctx, workload.Status.ArgoWorkflow.Name, "argo-workflows")
+		if err != nil {
+			log.Error(err, "failed to get workflow status")
+			workload.Status.Phase = "Failed"
+			workload.Status.ArgoPhase = "Error"
+			if err := r.Status().Update(ctx, workload); err != nil {
+				log.Error(err, "failed to update status")
+			}
+			return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+		}
+
+		// Update phase based on workflow status
+		workload.Status.ArgoPhase = wfStatus.Phase
+		if wfStatus.Phase == "Succeeded" {
+			workload.Status.Phase = "Completed"
+		} else if wfStatus.Phase == "Failed" || wfStatus.Phase == "Error" {
+			workload.Status.Phase = "Failed"
+		} else if wfStatus.Phase == "Running" || wfStatus.Phase == "Pending" {
+			workload.Status.Phase = "Running"
+		} else if wfStatus.Phase == "Suspended" {
+			workload.Status.Phase = "Running"
+		}
+
+		if err := r.Status().Update(ctx, workload); err != nil {
+			log.Error(err, "failed to update status")
+		}
+
+		// Requeue to check status again
+		return ctrl.Result{RequeueAfter: 15 * time.Second}, nil
+	}
+
+	// Create new workflow
+	log.Info("Creating new Argo Workflow", "jobId", workload.Spec.JobID)
+
+	// Create the workflow
+	workflow, err := wfManager.CreateArgoWorkflow(ctx, workload)
+	if err != nil {
+		log.Error(err, "failed to create Argo workflow")
+		workload.Status.Phase = "Failed"
+		workload.Status.ArgoPhase = "Error"
+		if err := r.Status().Update(ctx, workload); err != nil {
+			log.Error(err, "failed to update status")
+		}
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	log.Info("Argo Workflow created successfully", "workflowName", workflow.GetName())
+
+	// Update status with workflow reference
+	workload.Status.Phase = "Running"
+	workload.Status.ArgoPhase = "Pending"
+	workload.Status.ArgoWorkflow = &agenticv1alpha1.ArgoWorkflowRef{
+		Name:      workflow.GetName(),
+		Namespace: workflow.GetNamespace(),
+		UID:       string(workflow.GetUID()),
+		CreatedAt: &metav1.Time{Time: time.Now()},
+	}
+
+	if err := r.Status().Update(ctx, workload); err != nil {
+		log.Error(err, "failed to update status with workflow reference")
+		return ctrl.Result{RequeueAfter: 30 * time.Second}, nil
+	}
+
+	return ctrl.Result{RequeueAfter: 15 * time.Second}, nil
 }
 
 // SetupWithManager sets up the controller with the Manager.

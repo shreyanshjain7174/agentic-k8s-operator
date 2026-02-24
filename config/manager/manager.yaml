@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: agentic-operator
+  namespace: agentic-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: agentic-operator
+rules:
+- apiGroups: ["agentic.ninerewards.io"]
+  resources: ["agentworkloads"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["agentic.ninerewards.io"]
+  resources: ["agentworkloads/status"]
+  verbs: ["get", "update", "patch"]
+- apiGroups: ["argoproj.io"]
+  resources: ["workflows"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: [""]
+  resources: ["secrets", "configmaps"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: agentic-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: agentic-operator
+subjects:
+- kind: ServiceAccount
+  name: agentic-operator
+  namespace: agentic-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agentic-operator
+  namespace: agentic-system
+  labels:
+    app: agentic-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: agentic-operator
+  template:
+    metadata:
+      labels:
+        app: agentic-operator
+    spec:
+      serviceAccountName: agentic-operator
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+      containers:
+      - name: manager
+        image: agentic-operator:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8080
+          name: metrics
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65532
+          capabilities:
+            drop:
+            - ALL
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+      volumes:
+      - name: tmp
+        emptyDir: {}

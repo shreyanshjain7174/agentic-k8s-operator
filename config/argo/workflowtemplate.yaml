@@ -1,0 +1,557 @@
+---
+# WorkflowTemplate: Visual Analysis Pipeline
+# 
+# Defines a 4-step DAG for scraping and analyzing competitor websites:
+# 1. Scraper (sequential): Fetch HTML from target URLs
+# 2. Parallel processing: Extract screenshots, DOM, and analyze with vision
+# 3. Suspend gate: Wait for operator approval before synthesis
+# 4. Synthesis: Generate competitive analysis report
+#
+# Parameters are substituted by the operator:
+#   - job_id: unique workflow identifier (from AgentWorkload.spec.jobId)
+#   - target_urls: JSON array of URLs to scrape (from AgentWorkload.spec.targetUrls)
+#   - minio_bucket: S3 bucket for artifacts (from AgentWorkload.spec.minioBucket)
+#   - agent_image: Python agent container image (defaults to gcr.io/.../agent:latest)
+#   - browserless_url: Browserless WebSocket endpoint (defaults to http://browserless:3000)
+#   - litellm_url: LiteLLM proxy HTTP endpoint (defaults to http://litellm:8000)
+#   - postgres_dsn: PostgreSQL connection string (defaults to shared-services PostgreSQL)
+#
+# Artifacts:
+#   - Step 1: s3://{bucket}/job_{job_id}/raw_html.json
+#   - Step 2a: s3://{bucket}/job_{job_id}/screenshots/
+#   - Step 2b: s3://{bucket}/job_{job_id}/dom_structures.json
+#   - Step 4: s3://{bucket}/job_{job_id}/report.md
+#
+# Security:
+#   - Pods run as non-root (UID 1000)
+#   - Filesystem is read-only (except /tmp)
+#   - Network policies restrict traffic to shared-services only
+#   - Secrets mounted at /etc/secrets (read-only)
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: visual-analysis-template
+  namespace: argo-workflows
+  labels:
+    app.kubernetes.io/name: visual-analysis-template
+    app.kubernetes.io/part-of: agentic-k8s-operator
+spec:
+  # Entrypoint: Start with scraper step
+  entrypoint: visual-analysis-dag
+  
+  # Global service account with Argo permissions
+  serviceAccountName: argo-workflow-executor
+  
+  # TTL: Clean up completed workflows after 15 minutes
+  ttlSecondsAfterFinished: 900
+  
+  # Timeout: Fail workflow if not completed within 30 minutes
+  # This prevents indefinite hangs in suspend gates
+  activeDeadlineSeconds: 1800
+  
+  # Parameters: Substituted by operator at workflow instantiation
+  arguments:
+    parameters:
+      - name: job_id
+        description: "Unique job identifier (from AgentWorkload.metadata.name)"
+        value: "job-default"
+      
+      - name: target_urls
+        description: "JSON array of target URLs to scrape"
+        value: "[]"
+      
+      - name: minio_bucket
+        description: "S3 bucket for artifact storage"
+        value: "artifacts"
+      
+      - name: agent_image
+        description: "Python agent container image"
+        value: "gcr.io/agentic-k8s/agent:latest"
+      
+      - name: browserless_url
+        description: "Browserless WebSocket endpoint"
+        value: "ws://browserless.shared-services:3000"
+      
+      - name: litellm_url
+        description: "LiteLLM proxy HTTP endpoint"
+        value: "http://litellm.shared-services:8000"
+      
+      - name: postgres_dsn
+        description: "PostgreSQL connection string for LangGraph checkpointing"
+        value: "postgresql://langgraph:langgraph@postgres.shared-services:5432/langgraph"
+
+  # DAG: Define task dependencies
+  templates:
+    # Main DAG template
+    - name: visual-analysis-dag
+      dag:
+        tasks:
+          # Step 1: Scraper (sequential)
+          - name: scraper
+            template: scraper-template
+            arguments:
+              parameters:
+                - name: job_id
+                  value: "{{inputs.parameters.job_id}}"
+                - name: target_urls
+                  value: "{{inputs.parameters.target_urls}}"
+                - name: minio_bucket
+                  value: "{{inputs.parameters.minio_bucket}}"
+                - name: agent_image
+                  value: "{{inputs.parameters.agent_image}}"
+                - name: postgres_dsn
+                  value: "{{inputs.parameters.postgres_dsn}}"
+          
+          # Step 2: Parallel processing (screenshot + DOM extraction)
+          - name: parallel-processing
+            depends: "scraper"
+            template: parallel-processing-template
+            arguments:
+              parameters:
+                - name: job_id
+                  value: "{{inputs.parameters.job_id}}"
+                - name: target_urls
+                  value: "{{inputs.parameters.target_urls}}"
+                - name: minio_bucket
+                  value: "{{inputs.parameters.minio_bucket}}"
+                - name: agent_image
+                  value: "{{inputs.parameters.agent_image}}"
+                - name: browserless_url
+                  value: "{{inputs.parameters.browserless_url}}"
+                - name: postgres_dsn
+                  value: "{{inputs.parameters.postgres_dsn}}"
+          
+          # Step 3: Suspend gate (wait for operator approval via OPA)
+          - name: approval-gate
+            depends: "parallel-processing"
+            template: suspend-gate
+          
+          # Step 4: Synthesis (generate report)
+          - name: synthesis
+            depends: "approval-gate"
+            template: synthesis-template
+            arguments:
+              parameters:
+                - name: job_id
+                  value: "{{inputs.parameters.job_id}}"
+                - name: minio_bucket
+                  value: "{{inputs.parameters.minio_bucket}}"
+                - name: agent_image
+                  value: "{{inputs.parameters.agent_image}}"
+                - name: litellm_url
+                  value: "{{inputs.parameters.litellm_url}}"
+                - name: postgres_dsn
+                  value: "{{inputs.parameters.postgres_dsn}}"
+
+    # Template 1: Scraper
+    # Fetches HTML content from target URLs using LangGraph checkpointing for durability
+    - name: scraper-template
+      inputs:
+        parameters:
+          - name: job_id
+          - name: target_urls
+          - name: minio_bucket
+          - name: agent_image
+          - name: postgres_dsn
+      
+      # Container spec for scraper pod
+      container:
+        image: "{{inputs.parameters.agent_image}}"
+        imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "agents.scraper"]
+        
+        # Environment variables passed to agent
+        env:
+          - name: JOB_ID
+            value: "{{inputs.parameters.job_id}}"
+          - name: TARGET_URLS
+            value: "{{inputs.parameters.target_urls}}"
+          - name: MINIO_BUCKET
+            value: "{{inputs.parameters.minio_bucket}}"
+          - name: MINIO_URL
+            value: "http://minio.shared-services:9000"
+          - name: POSTGRES_DSN
+            value: "{{inputs.parameters.postgres_dsn}}"
+          - name: LOG_LEVEL
+            value: "INFO"
+        
+        # Resource limits (prevent node resource exhaustion)
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        
+        # Security context (non-root, read-only filesystem)
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        
+        # Volume mounts for secrets and temp storage
+        volumeMounts:
+          - name: minio-credentials
+            mountPath: /etc/secrets/minio
+            readOnly: true
+          - name: tmp
+            mountPath: /tmp
+          - name: home
+            mountPath: /home/agent
+        
+        # Liveness probe: Restart if pod becomes unresponsive
+        livenessProbe:
+          exec:
+            command:
+              - python
+              - -c
+              - "import sys; sys.exit(0)"
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+      
+      # Artifacts: Output from scraper stored in MinIO
+      outputs:
+        artifacts:
+          - name: raw-html
+            path: /tmp/raw_html.json
+            s3:
+              endpoint: "minio.shared-services:9000"
+              bucket: "{{inputs.parameters.minio_bucket}}"
+              key: "job-{{inputs.parameters.job_id}}/raw_html.json"
+              accessKey:
+                name: minio-credentials
+                key: access-key
+              secretKey:
+                name: minio-credentials
+                key: secret-key
+              insecure: true
+      
+      # Volumes: Provide credentials and writable directories
+      volumes:
+        - name: minio-credentials
+          secret:
+            secretName: minio-credentials
+            defaultMode: 0400
+        - name: tmp
+          emptyDir: {}
+        - name: home
+          emptyDir: {}
+
+    # Template 2: Parallel Processing
+    # Runs screenshot extraction and DOM parsing in parallel
+    - name: parallel-processing-template
+      inputs:
+        parameters:
+          - name: job_id
+          - name: target_urls
+          - name: minio_bucket
+          - name: agent_image
+          - name: browserless_url
+          - name: postgres_dsn
+      
+      dag:
+        tasks:
+          # Task 2a: Screenshot extraction (uses Browserless)
+          - name: screenshot-extractor
+            template: screenshot-template
+            arguments:
+              parameters:
+                - name: job_id
+                  value: "{{inputs.parameters.job_id}}"
+                - name: target_urls
+                  value: "{{inputs.parameters.target_urls}}"
+                - name: minio_bucket
+                  value: "{{inputs.parameters.minio_bucket}}"
+                - name: agent_image
+                  value: "{{inputs.parameters.agent_image}}"
+                - name: browserless_url
+                  value: "{{inputs.parameters.browserless_url}}"
+                - name: postgres_dsn
+                  value: "{{inputs.parameters.postgres_dsn}}"
+          
+          # Task 2b: DOM extraction and analysis
+          - name: dom-extractor
+            template: dom-template
+            arguments:
+              parameters:
+                - name: job_id
+                  value: "{{inputs.parameters.job_id}}"
+                - name: target_urls
+                  value: "{{inputs.parameters.target_urls}}"
+                - name: minio_bucket
+                  value: "{{inputs.parameters.minio_bucket}}"
+                - name: agent_image
+                  value: "{{inputs.parameters.agent_image}}"
+                - name: postgres_dsn
+                  value: "{{inputs.parameters.postgres_dsn}}"
+
+    # Template 2a: Screenshot Extraction
+    # Uses Browserless to capture full-page screenshots via WebSocket
+    - name: screenshot-template
+      inputs:
+        parameters:
+          - name: job_id
+          - name: target_urls
+          - name: minio_bucket
+          - name: agent_image
+          - name: browserless_url
+          - name: postgres_dsn
+      
+      container:
+        image: "{{inputs.parameters.agent_image}}"
+        imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "agents.screenshot_extractor"]
+        
+        env:
+          - name: JOB_ID
+            value: "{{inputs.parameters.job_id}}"
+          - name: TARGET_URLS
+            value: "{{inputs.parameters.target_urls}}"
+          - name: MINIO_BUCKET
+            value: "{{inputs.parameters.minio_bucket}}"
+          - name: MINIO_URL
+            value: "http://minio.shared-services:9000"
+          - name: BROWSERLESS_URL
+            value: "{{inputs.parameters.browserless_url}}"
+          - name: POSTGRES_DSN
+            value: "{{inputs.parameters.postgres_dsn}}"
+          - name: LOG_LEVEL
+            value: "INFO"
+          # Timeout: Fail if WebSocket call takes > 30 seconds
+          - name: BROWSERLESS_TIMEOUT
+            value: "30"
+        
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        
+        volumeMounts:
+          - name: minio-credentials
+            mountPath: /etc/secrets/minio
+            readOnly: true
+          - name: tmp
+            mountPath: /tmp
+          - name: home
+            mountPath: /home/agent
+      
+      outputs:
+        artifacts:
+          - name: screenshots
+            path: /tmp/screenshots
+            s3:
+              endpoint: "minio.shared-services:9000"
+              bucket: "{{inputs.parameters.minio_bucket}}"
+              keyPrefix: "job-{{inputs.parameters.job_id}}/screenshots"
+              accessKey:
+                name: minio-credentials
+                key: access-key
+              secretKey:
+                name: minio-credentials
+                key: secret-key
+              insecure: true
+      
+      volumes:
+        - name: minio-credentials
+          secret:
+            secretName: minio-credentials
+            defaultMode: 0400
+        - name: tmp
+          emptyDir: {}
+        - name: home
+          emptyDir: {}
+
+    # Template 2b: DOM Extraction
+    # Extracts DOM structure from HTML using jsdom library
+    - name: dom-template
+      inputs:
+        parameters:
+          - name: job_id
+          - name: target_urls
+          - name: minio_bucket
+          - name: agent_image
+          - name: postgres_dsn
+      
+      container:
+        image: "{{inputs.parameters.agent_image}}"
+        imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "agents.dom_extractor"]
+        
+        env:
+          - name: JOB_ID
+            value: "{{inputs.parameters.job_id}}"
+          - name: TARGET_URLS
+            value: "{{inputs.parameters.target_urls}}"
+          - name: MINIO_BUCKET
+            value: "{{inputs.parameters.minio_bucket}}"
+          - name: MINIO_URL
+            value: "http://minio.shared-services:9000"
+          - name: POSTGRES_DSN
+            value: "{{inputs.parameters.postgres_dsn}}"
+          - name: LOG_LEVEL
+            value: "INFO"
+        
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        
+        volumeMounts:
+          - name: minio-credentials
+            mountPath: /etc/secrets/minio
+            readOnly: true
+          - name: tmp
+            mountPath: /tmp
+          - name: home
+            mountPath: /home/agent
+      
+      outputs:
+        artifacts:
+          - name: dom-structures
+            path: /tmp/dom_structures.json
+            s3:
+              endpoint: "minio.shared-services:9000"
+              bucket: "{{inputs.parameters.minio_bucket}}"
+              key: "job-{{inputs.parameters.job_id}}/dom_structures.json"
+              accessKey:
+                name: minio-credentials
+                key: access-key
+              secretKey:
+                name: minio-credentials
+                key: secret-key
+              insecure: true
+      
+      volumes:
+        - name: minio-credentials
+          secret:
+            secretName: minio-credentials
+            defaultMode: 0400
+        - name: tmp
+          emptyDir: {}
+        - name: home
+          emptyDir: {}
+
+    # Template 3: Suspend Gate
+    # Pauses workflow execution, waiting for operator to resume after OPA approval
+    - name: suspend-gate
+      suspend: {}
+
+    # Template 4: Synthesis
+    # Generates competitive analysis report using LiteLLM vision model
+    - name: synthesis-template
+      inputs:
+        parameters:
+          - name: job_id
+          - name: minio_bucket
+          - name: agent_image
+          - name: litellm_url
+          - name: postgres_dsn
+      
+      container:
+        image: "{{inputs.parameters.agent_image}}"
+        imagePullPolicy: IfNotPresent
+        command: ["python", "-m", "agents.synthesis"]
+        
+        env:
+          - name: JOB_ID
+            value: "{{inputs.parameters.job_id}}"
+          - name: MINIO_BUCKET
+            value: "{{inputs.parameters.minio_bucket}}"
+          - name: MINIO_URL
+            value: "http://minio.shared-services:9000"
+          - name: LITELLM_URL
+            value: "{{inputs.parameters.litellm_url}}"
+          - name: POSTGRES_DSN
+            value: "{{inputs.parameters.postgres_dsn}}"
+          - name: LOG_LEVEL
+            value: "INFO"
+        
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "1000m"
+            memory: "1Gi"
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+              - ALL
+        
+        volumeMounts:
+          - name: minio-credentials
+            mountPath: /etc/secrets/minio
+            readOnly: true
+          - name: litellm-credentials
+            mountPath: /etc/secrets/litellm
+            readOnly: true
+          - name: tmp
+            mountPath: /tmp
+          - name: home
+            mountPath: /home/agent
+      
+      outputs:
+        artifacts:
+          - name: report
+            path: /tmp/report.md
+            s3:
+              endpoint: "minio.shared-services:9000"
+              bucket: "{{inputs.parameters.minio_bucket}}"
+              key: "job-{{inputs.parameters.job_id}}/report.md"
+              accessKey:
+                name: minio-credentials
+                key: access-key
+              secretKey:
+                name: minio-credentials
+                key: secret-key
+              insecure: true
+      
+      volumes:
+        - name: minio-credentials
+          secret:
+            secretName: minio-credentials
+            defaultMode: 0400
+        - name: litellm-credentials
+          secret:
+            secretName: litellm-credentials
+            defaultMode: 0400
+        - name: tmp
+          emptyDir: {}
+        - name: home
+          emptyDir: {}
