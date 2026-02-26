@@ -41,3 +41,7 @@ manager
 
 # Logs and test outputs
 *.log
+# Build artifacts
+*.log
+generate-license
+manager
