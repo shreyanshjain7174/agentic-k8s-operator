@@ -14,6 +14,7 @@ LangGraph resumes from the last completed node.
 import asyncio
 import logging
 import os
+import re
 import time
 from typing import Optional
 
@@ -25,6 +26,47 @@ from agents.tools.browserless import BrowserlessClient, BrowserlessError
 from agents.tools.litellm_client import LiteLLMClient
 
 logger = logging.getLogger(__name__)
+
+
+def sanitize_scraped_content(content: str) -> str:
+    """
+    Strip common prompt injection patterns from scraped HTML content.
+    
+    Protects against malicious websites embedding instructions in page content
+    that could be passed to LLM models. This is critical for untrusted HTML
+    from competitor websites.
+    
+    Args:
+        content: Raw HTML/text scraped from a website
+        
+    Returns:
+        Sanitized content with injection patterns redacted
+    """
+    if not content:
+        return content
+    
+    # Common prompt injection patterns to detect and redact
+    injection_patterns = [
+        r'ignore (previous|all) instructions',
+        r'you are now',
+        r'system prompt',
+        r'</?(system|human|assistant)>',
+        r'\[INST\]|\[/INST\]',
+        r'<\|system\|>|<\|assistant\|>|<\|user\|>',
+    ]
+    
+    sanitized = content
+    for pattern in injection_patterns:
+        sanitized = re.sub(pattern, '[REDACTED]', sanitized, flags=re.IGNORECASE)
+    
+    # Hard token limit on scraped content (roughly 50K tokens = 200KB)
+    # Prevents prompt injection via volume overflow
+    max_bytes = 200000
+    if len(sanitized.encode('utf-8')) > max_bytes:
+        sanitized = sanitized[:max_bytes].rsplit(' ', 1)[0] + '... [TRUNCATED]'
+        logger.warning(f"Scraped content exceeded {max_bytes} bytes, truncated to prevent injection")
+    
+    return sanitized
 
 
 class AgentWorkflowError(Exception):
@@ -62,9 +104,14 @@ async def scrape_all_urls(state: AgentWorkflowState) -> AgentWorkflowState:
                 return state
             
             html, screenshot = result
-            raw_html[url] = html
+            
+            # SECURITY: Sanitize scraped content to prevent prompt injection
+            # This is critical for untrusted HTML from competitor websites
+            sanitized_html = sanitize_scraped_content(html)
+            
+            raw_html[url] = sanitized_html
             screenshots[url] = screenshot
-            logger.info(f"Scraped {url}: {len(html)} bytes HTML")
+            logger.info(f"Scraped {url}: {len(sanitized_html)} bytes HTML (sanitized)")
         
         state["raw_html"] = raw_html
         state["screenshots"] = screenshots
