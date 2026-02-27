@@ -45,3 +45,5 @@ manager
 *.log
 generate-license
 manager
+.keys/
+*.pem
