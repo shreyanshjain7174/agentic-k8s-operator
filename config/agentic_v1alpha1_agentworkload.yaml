@@ -1,4 +1,4 @@
-apiVersion: agentic.ninerewards.io/v1alpha1
+apiVersion: agentic.clawdlinux.org/v1alpha1
 kind: AgentWorkload
 metadata:
   labels:

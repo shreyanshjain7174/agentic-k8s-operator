@@ -3,19 +3,19 @@ kind: ValidatingWebhookConfiguration
 metadata:
   name: agentworkload-validator
 webhooks:
-- name: agentworkload.agentic.ninerewards.io
+- name: agentworkload.agentic.clawdlinux.org
   clientConfig:
     service:
       name: webhook-service
       namespace: agentic-system
-      path: /validate-agentic-ninerewards-io-v1alpha1-agentworkload
+      path: /validate-agentic-clawdlinux-org-v1alpha1-agentworkload
     caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi... # placeholder, filled by cert-manager
   rules:
   - operations:
     - CREATE
     - UPDATE
     apiGroups:
-    - agentic.ninerewards.io
+    - agentic.clawdlinux.org
     apiVersions:
     - v1alpha1
     resources:
@@ -31,19 +31,19 @@ kind: MutatingWebhookConfiguration
 metadata:
   name: agentworkload-mutator
 webhooks:
-- name: magentworkload.agentic.ninerewards.io
+- name: magentworkload.agentic.clawdlinux.org
   clientConfig:
     service:
       name: webhook-service
       namespace: agentic-system
-      path: /mutate-agentic-ninerewards-io-v1alpha1-agentworkload
+      path: /mutate-agentic-clawdlinux-org-v1alpha1-agentworkload
     caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCi... # placeholder, filled by cert-manager
   rules:
   - operations:
     - CREATE
     - UPDATE
     apiGroups:
-    - agentic.ninerewards.io
+    - agentic.clawdlinux.org
     apiVersions:
     - v1alpha1
     resources:

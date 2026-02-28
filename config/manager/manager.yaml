@@ -9,10 +9,10 @@ kind: ClusterRole
 metadata:
   name: agentic-operator
 rules:
-- apiGroups: ["agentic.ninerewards.io"]
+- apiGroups: ["agentic.clawdlinux.org"]
   resources: ["agentworkloads"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-- apiGroups: ["agentic.ninerewards.io"]
+- apiGroups: ["agentic.clawdlinux.org"]
   resources: ["agentworkloads/status"]
   verbs: ["get", "update", "patch"]
 - apiGroups: ["argoproj.io"]
