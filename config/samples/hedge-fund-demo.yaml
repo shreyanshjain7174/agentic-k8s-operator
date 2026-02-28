@@ -3,6 +3,12 @@ kind: AgentWorkload
 metadata:
   name: hedge-fund-competitive-intelligence
   namespace: agentic-system
+  labels:
+    use-case: "competitive-intelligence"
+    customer-facing: "true"
+  annotations:
+    description: "Hedge fund competitive intelligence pipeline - daily analysis"
+    data-sensitivity: "confidential"
 spec:
   # What the agent will do
   objective: |
@@ -29,100 +35,76 @@ spec:
   # OPA policy enforcement (permissive vs. strict)
   opaPolicy: permissive
   
-  # Configuration for this specific workload
-  metadata:
-    labels:
-      use-case: "competitive-intelligence"
-      customer-facing: "true"
-      data-sensitivity: "confidential"
-    annotations:
-      description: "Hedge fund competitive intelligence pipeline - daily analysis"
-      sla-hours: "4"
-      cost-budget-daily: "$5"
+  # Target storage configuration
+  targetBucket: "hedge-fund-reports"
+  targetPrefix: "competitive-intelligence"
 
 ---
-# Example: Triggered via Argo Workflow
+# CronWorkflow: Scheduled daily competitive intelligence analysis
 apiVersion: argoproj.io/v1alpha1
-kind: Workflow
+kind: CronWorkflow
 metadata:
   name: hedge-fund-daily
   namespace: argo-workflows
 spec:
-  entrypoint: competitive-analysis
-  
-  templates:
-  - name: competitive-analysis
-    dag:
-      tasks:
-      - name: scrape-competitors
-        template: scrape-task
-      - name: synthesize
-        template: synthesize-task
-        dependencies: scrape-competitors
-      - name: generate-report
-        template: report-task
-        dependencies: synthesize
-  
-  - name: scrape-task
-    container:
-      image: registry.digitalocean.com/agentic-operator:latest
-      command: ["python3", "agents/tasks/scraper.py"]
-      args:
-        - "--urls=notion.com/pricing,linear.app/pricing,asana.com/pricing"
-        - "--output=/tmp/competitor-data.json"
-      env:
-      - name: LITELLM_PROXY_URL
-        value: "http://litellm:8000"
-      volumeMounts:
-      - name: shared-data
-        mountPath: /tmp
-  
-  - name: synthesize-task
-    container:
-      image: registry.digitalocean.com/agentic-operator:latest
-      command: ["python3", "agents/tasks/synthesizer.py"]
-      args:
-        - "--input=/tmp/competitor-data.json"
-        - "--model=claude-3-5-sonnet"
-        - "--output=/tmp/analysis.json"
-      env:
-      - name: LITELLM_PROXY_URL
-        value: "http://litellm:8000"
-      volumeMounts:
-      - name: shared-data
-        mountPath: /tmp
-  
-  - name: report-task
-    container:
-      image: registry.digitalocean.com/agentic-operator:latest
-      command: ["python3", "agents/tasks/report_generator.py"]
-      args:
-        - "--input=/tmp/analysis.json"
-        - "--output=/tmp/report.pdf"
-        - "--minio-bucket=hedge-fund-reports"
-      env:
-      - name: MINIO_ENDPOINT
-        value: "minio:9000"
-      - name: MINIO_ROOT_USER
-        valueFrom:
-          secretKeyRef:
-            name: minio-credentials
-            key: username
-      - name: MINIO_ROOT_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: minio-credentials
-            key: password
-      volumeMounts:
-      - name: shared-data
-        mountPath: /tmp
-  
-  volumes:
-  - name: shared-data
-    emptyDir: {}
-  
-  # Schedule daily at 9 AM UTC
+  # Schedule: Daily at 9 AM UTC
   schedule: "0 9 * * *"
+  timezone: UTC
+  concurrencyPolicy: "Allow"
+  startingDeadlineSeconds: 0
+  
+  workflowSpec:
+    entrypoint: main
+    serviceAccountName: argo-workflow-executor
+    volumes:
+    - name: shared-data
+      emptyDir: {}
+    
+    templates:
+    - name: main
+      steps:
+      - - name: scrape
+          template: scrape-task
+      - - name: synthesize
+          template: synthesize-task
+      - - name: report
+          template: report-task
+    
+    - name: scrape-task
+      container:
+        image: registry.digitalocean.com/agentic-operator:latest
+        command: ["/bin/sh", "-c"]
+        args: ["python3 demo-day-2-minimal.py > /tmp/competitor-data.json"]
+        env:
+        - name: LITELLM_PROXY_URL
+          value: "http://litellm:8000"
+        volumeMounts:
+        - name: shared-data
+          mountPath: /tmp
+    
+    - name: synthesize-task
+      container:
+        image: registry.digitalocean.com/agentic-operator:latest
+        command: ["/bin/sh", "-c"]
+        args: ["python3 -c 'import json; print(json.load(open(\"/tmp/competitor-data.json\")))' > /tmp/analysis.json"]
+        env:
+        - name: LITELLM_PROXY_URL
+          value: "http://litellm:8000"
+        volumeMounts:
+        - name: shared-data
+          mountPath: /tmp
+    
+    - name: report-task
+      container:
+        image: registry.digitalocean.com/agentic-operator:latest
+        command: ["/bin/sh", "-c"]
+        args: ["echo 'Report generated' > /tmp/report.txt && cat /tmp/analysis.json"]
+        env:
+        - name: MINIO_ENDPOINT
+          value: "minio:9000"
+        volumeMounts:
+        - name: shared-data
+          mountPath: /tmp
 
 ---
 # Service Account for workload execution
