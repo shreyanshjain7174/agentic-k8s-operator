@@ -1,4 +1,4 @@
-apiVersion: agentic.ninerewards.io/v1alpha1
+apiVersion: agentic.clawdlinux.org/v1alpha1
 kind: AgentWorkload
 metadata:
   name: generic-optimization-task
@@ -27,7 +27,7 @@ spec:
 
 ---
 # Example with Ceph workload type
-apiVersion: agentic.ninerewards.io/v1alpha1
+apiVersion: agentic.clawdlinux.org/v1alpha1
 kind: AgentWorkload
 metadata:
   name: ceph-recovery-task
@@ -44,7 +44,7 @@ spec:
 
 ---
 # Example with MinIO workload type
-apiVersion: agentic.ninerewards.io/v1alpha1
+apiVersion: agentic.clawdlinux.org/v1alpha1
 kind: AgentWorkload
 metadata:
   name: minio-optimization-task
@@ -61,7 +61,7 @@ spec:
 
 ---
 # Example with PostgreSQL workload type
-apiVersion: agentic.ninerewards.io/v1alpha1
+apiVersion: agentic.clawdlinux.org/v1alpha1
 kind: AgentWorkload
 metadata:
   name: postgres-maintenance-task

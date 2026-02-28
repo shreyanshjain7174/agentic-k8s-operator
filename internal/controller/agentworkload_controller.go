@@ -47,9 +47,9 @@ type AgentWorkloadReconciler struct {
 	Validator *license.Validator // License validation (optional, can be nil)
 }
 
-// +kubebuilder:rbac:groups=agentic.ninerewards.io,resources=agentworkloads,verbs=get;list;watch;create;update;patch;delete
-// +kubebuilder:rbac:groups=agentic.ninerewards.io,resources=agentworkloads/status,verbs=get;update;patch
-// +kubebuilder:rbac:groups=agentic.ninerewards.io,resources=agentworkloads/finalizers,verbs=update
+// +kubebuilder:rbac:groups=agentic.clawdlinux.org,resources=agentworkloads,verbs=get;list;watch;create;update;patch;delete
+// +kubebuilder:rbac:groups=agentic.clawdlinux.org,resources=agentworkloads/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=agentic.clawdlinux.org,resources=agentworkloads/finalizers,verbs=update
 
 // Reconcile reconciles the AgentWorkload by:
 // 1. Fetching the AgentWorkload CR

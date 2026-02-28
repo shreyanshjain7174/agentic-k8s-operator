@@ -1,10 +1,10 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: agentworkloads.agentic.ninerewards.io
+  name: agentworkloads.agentic.clawdlinux.org
   namespace: agentic-system
 spec:
-  group: agentic.ninerewards.io
+  group: agentic.clawdlinux.org
   scope: Namespaced
   names:
     kind: AgentWorkload

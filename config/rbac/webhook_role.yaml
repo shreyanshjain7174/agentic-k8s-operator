@@ -5,7 +5,7 @@ metadata:
 rules:
 # Webhook needs to read/list agentworkloads to validate them
 - apiGroups:
-  - agentic.ninerewards.io
+  - agentic.clawdlinux.org
   resources:
   - agentworkloads
   verbs:
@@ -14,7 +14,7 @@ rules:
   - watch
 # Webhook needs to read/list onapolicies for validation
 - apiGroups:
-  - agentic.ninerewards.io
+  - agentic.clawdlinux.org
   resources:
   - onapolicies
   verbs:
