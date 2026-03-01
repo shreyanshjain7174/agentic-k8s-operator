@@ -47,3 +47,6 @@ generate-license
 manager
 .keys/
 *.pem
+*.log
+manager
+bin/
