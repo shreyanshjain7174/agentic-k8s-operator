@@ -181,7 +181,7 @@ export default function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden pt-16 lg:pt-18"
       style={{ background: '#05080f' }}
     >
       {/* Particle canvas */}
