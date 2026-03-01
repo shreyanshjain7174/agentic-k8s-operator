@@ -44,18 +44,21 @@ function doGet(e) {
 9. Copy the **Web app URL** — it looks like:
    `https://script.google.com/macros/s/AKfycb.../exec`
 
-## 3. Configure the Environment
+## 3. Update the Hardcoded URL
 
-```bash
-cp .env.example .env.local
-# Edit .env.local and paste your Apps Script URL
-VITE_GOOGLE_SHEETS_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+The Apps Script URL is hardcoded directly in `landing/src/components/Waitlist.jsx`:
+
+```js
+const SHEETS_URL =
+  'https://script.google.com/macros/s/AKfycbwV1kA1LZbJOknuEogm6dNBNx8U1BU_djrC4lSKMzlPKmO0ARVCV6kD7MW0BWgGKsFJ/exec';
 ```
 
-## 4. For Fly.io Deployment
+To use your own sheet, replace the URL above with the Web app URL from step 2, then rebuild and redeploy:
 
 ```bash
-flyctl secrets set VITE_GOOGLE_SHEETS_URL="https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"
+# After editing Waitlist.jsx with your URL:
+cd landing && npm run build
+flyctl deploy --remote-only --app agentic-k8s-landing
 ```
 
-> **Note:** Since the form uses `mode: 'no-cors'`, you won't see a response body from the fetch call, but submissions will appear in your Google Sheet within seconds.
+> **Note:** Since the form uses `mode: 'no-cors'`, the browser cannot read the Apps Script response. This is the standard pattern for static-site → Apps Script integrations. Server-side errors (quota exceeded, script failure) will not surface to the user.
