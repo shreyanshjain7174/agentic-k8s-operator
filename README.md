@@ -11,6 +11,20 @@
 
 ---
 
+## 🎬 Demo
+
+### Operator Demo — Live Hedge Fund Pipeline
+
+https://github.com/shreyanshjain7174/agentic-k8s-operator/raw/main/agentic-operator-demo.mp4
+
+### Full Walkthrough — Architecture & MCP Integration
+
+https://github.com/shreyanshjain7174/agentic-k8s-operator/raw/main/demo-video.mp4
+
+> Also see the **[landing page demo section](https://agentic-k8s-landing.fly.dev/#demo)** for an interactive view with the full pitch deck.
+
+---
+
 ## What's Running Right Now
 
 ### Live Infrastructure (agentic-prod cluster)
