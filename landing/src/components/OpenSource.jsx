@@ -27,8 +27,8 @@ const badges = [
 ];
 
 const contributionStats = [
-  { value: '46', label: 'Go Tests' },
-  { value: '19', label: 'Python Tests' },
+  { value: '47', label: 'Go Tests' },
+  { value: '7', label: 'Python Tests' },
   { value: '5 Weeks', label: 'to Production' },
 ];
 
