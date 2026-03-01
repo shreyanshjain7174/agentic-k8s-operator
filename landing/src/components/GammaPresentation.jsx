@@ -120,7 +120,7 @@ function VideoPlayer({ video, isActive }) {
 
 export default function GammaPresentation() {
   const [activeVideo, setActiveVideo] = useState(0);
-  const [showDeck, setShowDeck] = useState(false);
+  const [showDeck, setShowDeck] = useState(true);
 
   return (
     <section
