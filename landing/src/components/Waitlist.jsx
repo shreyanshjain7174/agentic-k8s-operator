@@ -127,14 +127,16 @@ export default function Waitlist() {
     setErrorMsg('');
 
     try {
-      const data = new FormData();
-      data.append('email', form.email);
-      data.append('company', form.company);
-      data.append('role', form.role);
-      data.append('timestamp', new Date().toISOString());
+      // URLSearchParams sends application/x-www-form-urlencoded, which Apps Script parses into e.parameter
+      // FormData (multipart) is NOT parsed by Apps Script — this is the correct encoding for no-cors + Apps Script
+      const params = new URLSearchParams();
+      params.append('email', form.email);
+      params.append('company', form.company);
+      params.append('role', form.role);
+      params.append('timestamp', new Date().toISOString());
 
       // no-cors: Apps Script doesn't set CORS headers; we can't read the response — assume success
-      await fetch(SHEETS_URL, { method: 'POST', mode: 'no-cors', body: data });
+      await fetch(SHEETS_URL, { method: 'POST', mode: 'no-cors', body: params });
 
       setStatus('success');
     } catch (err) {
