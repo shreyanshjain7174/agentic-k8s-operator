@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle, Loader2, Mail } from 'lucide-react';
 
@@ -112,6 +112,10 @@ export default function Waitlist() {
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
   const [errorMsg, setErrorMsg] = useState('');
 
+  // Client-side rate limiting: prevent rapid resubmission
+  const lastSubmitRef = useRef(null);
+  const COOLDOWN_MS = 30_000; // 30 seconds between submissions
+
   const SHEETS_URL =
     'https://script.google.com/macros/s/AKfycbwV1kA1LZbJOknuEogm6dNBNx8U1BU_djrC4lSKMzlPKmO0ARVCV6kD7MW0BWgGKsFJ/exec';
 
@@ -122,6 +126,15 @@ export default function Waitlist() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.email) return;
+
+    // Client-side rate limit: 30s cooldown between submissions
+    const now = Date.now();
+    if (lastSubmitRef.current && now - lastSubmitRef.current < COOLDOWN_MS) {
+      setErrorMsg('Please wait 30 seconds before submitting again.');
+      setStatus('error');
+      return;
+    }
+    lastSubmitRef.current = now;
 
     setStatus('loading');
     setErrorMsg('');
