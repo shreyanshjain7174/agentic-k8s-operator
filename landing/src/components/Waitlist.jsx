@@ -112,7 +112,8 @@ export default function Waitlist() {
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
   const [errorMsg, setErrorMsg] = useState('');
 
-  const sheetsUrl = import.meta.env.VITE_GOOGLE_SHEETS_URL;
+  const SHEETS_URL =
+    'https://script.google.com/macros/s/AKfycbwV1kA1LZbJOknuEogm6dNBNx8U1BU_djrC4lSKMzlPKmO0ARVCV6kD7MW0BWgGKsFJ/exec';
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -130,12 +131,11 @@ export default function Waitlist() {
       data.append('email', form.email);
       data.append('company', form.company);
       data.append('role', form.role);
+      data.append('timestamp', new Date().toISOString());
 
-      if (sheetsUrl) {
-        await fetch(sheetsUrl, { method: 'POST', mode: 'no-cors', body: data });
-      }
+      // no-cors: Apps Script doesn't set CORS headers; we can't read the response — assume success
+      await fetch(SHEETS_URL, { method: 'POST', mode: 'no-cors', body: data });
 
-      // With no-cors, we can't read the response - assume success
       setStatus('success');
     } catch (err) {
       console.error(err);
