@@ -5,6 +5,22 @@ import (
 	"fmt"
 )
 
+// ModelTier represents cost tier of an LLM model.
+type ModelTier string
+
+const (
+	TierCheap     ModelTier = "cheap"     // e.g., GPT-3.5, Llama 2 7B
+	TierMedium    ModelTier = "medium"    // e.g., GPT-4, Claude 3 Sonnet
+	TierExpensive ModelTier = "expensive" // e.g., GPT-4 Turbo, Claude 3 Opus
+)
+
+// ModelSelector manages dynamic model selection based on cost/performance tradeoff.
+type ModelSelector struct {
+	CurrentTier    ModelTier
+	AvailableTiers []ModelTier
+	CostPerToken   map[ModelTier]float64 // USD per 1K tokens
+}
+
 var (
 	ErrNoDowngradePath = errors.New("no cheaper model available")
 	ErrNoUpgradePath   = errors.New("no more expensive model available")
