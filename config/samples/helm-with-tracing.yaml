@@ -1,0 +1,183 @@
+# Sample Helm values for operator with OpenTelemetry tracing enabled
+# This shows how to integrate model routing traces with existing Loki stack
+
+# Enable OpenTelemetry in the operator
+opentelemetry:
+  enabled: true
+  
+  # Trace exporter configuration
+  exporter:
+    type: otlp  # OTLP (OpenTelemetry Protocol)
+    
+    # OTLP Collector endpoint
+    # Usually: otel-collector.monitoring:4317 (gRPC)
+    # Or: http://otel-collector.monitoring:4318 (HTTP)
+    endpoint: "otel-collector.monitoring:4317"
+    
+    # Trace sampling (0.0-1.0)
+    # 1.0 = sample all traces (development)
+    # 0.1 = sample 10% (production)
+    samplingRate: 1.0
+  
+  # Optional: Direct Loki integration
+  # Sends traces directly to Loki without collector
+  loki:
+    enabled: true
+    endpoint: "http://loki:3100"
+    logLevel: info
+
+# Agent workload with cost-aware routing and tracing
+agentWorkload:
+  name: market-intelligence
+  
+  # Enable cost-aware routing
+  modelStrategy: cost-aware
+  taskClassifier: default
+  
+  # Define LLM providers
+  providers:
+    - name: openai
+      type: openai-compatible
+      endpoint: https://api.openai.com/v1
+      apiKeySecret:
+        name: openai-api-key
+        key: api-key
+  
+  # Map task categories to models
+  modelMapping:
+    validation: openai/gpt-3.5-turbo    # Cheap model for validation
+    analysis: openai/gpt-4               # Balanced model for analysis
+    reasoning: openai/gpt-4-turbo        # Best model for complex reasoning
+  
+  # Workload objective (will be classified and routed)
+  objective: "Analyze recent market trends for technology stocks"
+
+# Grafana dashboard configuration
+grafana:
+  # Example queries for viewing traces
+  queries:
+    - name: "Model Routing Traces"
+      query: '{job="agentic-operator"} | json | task_category!=""'
+      panel: traces
+    
+    - name: "Validation Tasks (Cheap)"
+      query: '{job="agentic-operator"} | json | task_category="validation"'
+      panel: traces
+    
+    - name: "Analysis Tasks (Balanced)"
+      query: '{job="agentic-operator"} | json | task_category="analysis"'
+      panel: traces
+    
+    - name: "Reasoning Tasks (Expensive)"
+      query: '{job="agentic-operator"} | json | task_category="reasoning"'
+      panel: traces
+    
+    - name: "Failed Routing Attempts"
+      query: '{job="agentic-operator"} | json | span_name="routing_failed"'
+      panel: traces
+    
+    - name: "Token Usage by Provider"
+      query: 'sum(increase(agentic_tokens_used_total[5m])) by (provider, type)'
+      panel: graph
+    
+    - name: "Cost by Provider (USD)"
+      query: 'sum(agentic_estimated_cost_usd) by (provider)'
+      panel: stat
+
+# Loki configuration (if using direct Loki integration)
+loki:
+  # Define label matchers for easy filtering
+  labels:
+    - name: job
+      value: agentic-operator
+    - name: workload
+      # Set dynamically from workload name
+  
+  # Retention policy for traces
+  retention:
+    days: 7  # Keep traces for 7 days
+
+# Prometheus configuration (existing metrics still work)
+prometheus:
+  # Model routing metrics
+  rules:
+    - alert: HighValidationTaskRate
+      expr: 'rate(agentic_model_routing_total{task_category="validation"}[5m]) > 10'
+      annotations:
+        summary: "High rate of validation tasks being routed"
+    
+    - alert: HighAPITokenUsage
+      expr: 'rate(agentic_tokens_used_total[5m]) > 1000'
+      annotations:
+        summary: "High token usage detected"
+    
+    - alert: EstimatedCostAlert
+      expr: 'agentic_estimated_cost_usd > 100'
+      annotations:
+        summary: "Estimated monthly API cost > $100"
+
+# OpenTelemetry Collector configuration (if using external collector)
+# Create this as a separate deployment in monitoring namespace
+otelCollector:
+  enabled: false  # Set to true if using external collector
+  
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+  
+  processors:
+    batch:
+      send_batch_size: 256
+      timeout: 5s
+    
+    attributes:
+      actions:
+        - key: environment
+          value: production
+          action: insert
+        - key: service.name
+          from_attribute: service_name
+          action: upsert
+  
+  exporters:
+    # Export to Loki for log-like viewing
+    loki:
+      endpoint: http://loki:3100/loki/api/v1/push
+    
+    # Export to Tempo for distributed tracing
+    otlp:
+      endpoint: tempo:4317
+      tls:
+        insecure: true
+    
+    # Also export to Prometheus for metrics
+    prometheus:
+      endpoint: 0.0.0.0:8889
+  
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [batch, attributes]
+        exporters: [loki, otlp]
+
+# Example queries to run in Grafana to view model routing
+
+# 1. See all model routing decisions in the last hour
+# Query: {job="agentic-operator"} | json | routing_decision != "" | range_agg(timestamp) >= 1h
+
+# 2. Drill into a specific workload's routing decisions
+# Query: {job="agentic-operator", workload="market-intelligence"} | json | task_category != ""
+
+# 3. View task classification accuracy
+# Query: 'SELECT task_category, count(*) FROM model_routing_traces GROUP BY task_category'
+
+# 4. Monitor API costs per model
+# Query: 'SELECT model, sum(tokens_input + tokens_output) / 1000 * cost_per_1k FROM routing_traces GROUP BY model'
+
+# 5. Find slow API calls (model call span duration > 5s)
+# Query: {job="agentic-operator", span_name="model.call"} | json | duration_ms > 5000
