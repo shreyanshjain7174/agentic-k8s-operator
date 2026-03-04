@@ -27,3 +27,9 @@ dist-ssr
 .env.local
 .env
 
+.vercel
+
+# Strategic documents (demo videos, pitch decks)
+*.mp4
+public/videos/
+videos/
