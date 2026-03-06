@@ -1,0 +1,39 @@
+name: OSS Feature
+description: Request an open-source feature for agentic-operator-core.
+title: "[OSS] "
+labels:
+  - enhancement
+  - oss
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is currently missing or difficult for OSS users?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed
+    attributes:
+      label: Proposed change
+      description: Describe the change at API/behavior level.
+    validations:
+      required: true
+
+  - type: textarea
+    id: non-goals
+    attributes:
+      label: Non-goals
+      description: Explicitly list what this issue will not cover.
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ]
+        - [ ]
+        - [ ]
+    validations:
+      required: true

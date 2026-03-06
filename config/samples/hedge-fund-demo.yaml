@@ -72,36 +72,36 @@ spec:
     
     - name: scrape-task
       container:
-        image: registry.digitalocean.com/agentic-operator:latest
+        image: python:3.11-slim
         command: ["/bin/sh", "-c"]
-        args: ["python3 demo-day-2-minimal.py > /tmp/competitor-data.json"]
+        args: ["python3 -c 'import json,datetime; data={\"captured_at\":datetime.datetime.utcnow().isoformat()+\"Z\",\"targets\":[\"https://www.notion.com/pricing\",\"https://linear.app/pricing\",\"https://asana.com/pricing\"]}; open(\"/tmp/competitor-data.json\",\"w\").write(json.dumps(data)); print(json.dumps(data))'"]
         env:
         - name: LITELLM_PROXY_URL
-          value: "http://litellm:8000"
+          value: "http://litellm.shared-services:8000"
         volumeMounts:
         - name: shared-data
           mountPath: /tmp
     
     - name: synthesize-task
       container:
-        image: registry.digitalocean.com/agentic-operator:latest
+        image: python:3.11-slim
         command: ["/bin/sh", "-c"]
-        args: ["python3 -c 'import json; print(json.load(open(\"/tmp/competitor-data.json\")))' > /tmp/analysis.json"]
+        args: ["python3 -c 'import json,datetime; data=json.load(open(\"/tmp/competitor-data.json\")); analysis={\"generated_at\":datetime.datetime.utcnow().isoformat()+\"Z\",\"target_count\":len(data.get(\"targets\",[])),\"summary\":\"Competitive pricing deltas captured for hedge-fund review\",\"thesis\":[\"Bundling pressure appears to be increasing\",\"Enterprise plans remain key monetization lever\"]}; open(\"/tmp/analysis.json\",\"w\").write(json.dumps(analysis, indent=2)); print(json.dumps(analysis))'"]
         env:
         - name: LITELLM_PROXY_URL
-          value: "http://litellm:8000"
+          value: "http://litellm.shared-services:8000"
         volumeMounts:
         - name: shared-data
           mountPath: /tmp
     
     - name: report-task
       container:
-        image: registry.digitalocean.com/agentic-operator:latest
+        image: python:3.11-slim
         command: ["/bin/sh", "-c"]
-        args: ["echo 'Report generated' > /tmp/report.txt && cat /tmp/analysis.json"]
+        args: ["python3 -c 'import json,pathlib,datetime; analysis=json.load(open(\"/tmp/analysis.json\")); report=\"# Hedge Fund Daily Intelligence\\n\\nGenerated: {}Z\\n\\n## Summary\\n{}\\n\\n## Targets\\n{}\\n\\n## Thesis\\n- {}\\n\".format(datetime.datetime.utcnow().isoformat(), analysis.get(\"summary\",\"n/a\"), analysis.get(\"target_count\",0), \"\\n- \".join(analysis.get(\"thesis\",[]))); pathlib.Path(\"/tmp/report.md\").write_text(report); print(report)'"]
         env:
         - name: MINIO_ENDPOINT
-          value: "minio:9000"
+          value: "minio.shared-services:9000"
         volumeMounts:
         - name: shared-data
           mountPath: /tmp

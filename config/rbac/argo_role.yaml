@@ -31,11 +31,13 @@ rules:
       - argoproj.io
     resources:
       - workflows
+      - workflowtaskresults
       - workflowtemplates
     verbs:
       - get
       - list
       - watch
+      - create
       - patch
       - update
   
@@ -103,6 +105,7 @@ rules:
       - argoproj.io
     resources:
       - workflows
+      - workflowtaskresults
     verbs:
       - create
       - get
