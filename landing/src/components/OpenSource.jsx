@@ -16,18 +16,18 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
 };
 
-const helmCommand = `pip install vmi-client && vmi init`;
+const helmCommand = `git clone https://github.com/Clawdlinux/agentic-operator-core.git`;
 
 const badges = [
   { label: 'MIT License', color: '#00d4aa', bg: 'rgba(0,212,170,0.1)', border: 'rgba(0,212,170,0.25)' },
-  { label: 'Python 3.11+', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.25)' },
-  { label: 'React + Vite', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
+  { label: 'Go + Kubernetes', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', border: 'rgba(99,102,241,0.25)' },
+  { label: 'Controller Runtime', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', border: 'rgba(245,158,11,0.25)' },
 ];
 
 const contributionStats = [
-  { value: '200+', label: 'Pages Monitored' },
-  { value: '4', label: 'AI Models' },
-  { value: '12', label: 'Integrations' },
+  { value: 'Open', label: 'Source Repository' },
+  { value: 'K8s', label: 'Operator-Native' },
+  { value: 'MIT', label: 'License' },
 ];
 
 export default function OpenSource() {
@@ -110,7 +110,7 @@ export default function OpenSource() {
           className="text-center text-lg mb-12"
           style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'DM Sans', sans-serif" }}
         >
-          VMI's core engine is open source. Inspect, extend, and self-host.
+          Agentic Operator is open source and powers Visual Market Intelligence. Inspect, extend, and self-host.
         </motion.p>
 
         {/* Repo card */}
@@ -130,7 +130,7 @@ export default function OpenSource() {
               <div className="flex items-center gap-2 mb-1">
                 <Github size={18} style={{ color: 'rgba(255,255,255,0.5)' }} />
                 <a
-                  href="https://github.com/Clawdlinux/visual-market-intelligence"
+                  href="https://github.com/Clawdlinux/agentic-operator-core"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-lg hover:underline"
@@ -140,7 +140,7 @@ export default function OpenSource() {
                     textDecoration: 'none',
                   }}
                 >
-                  Clawdlinux/visual-market-intelligence
+                  Clawdlinux/agentic-operator-core
                 </a>
               </div>
               <p
@@ -150,14 +150,14 @@ export default function OpenSource() {
                   fontFamily: "'DM Sans', sans-serif",
                 }}
               >
-                Open-source competitive intelligence platform — monitor, detect, deliver insights
+                Open-source Kubernetes operator for running and orchestrating autonomous AI workloads.
               </p>
             </div>
 
             {/* CTA buttons */}
             <div className="flex items-center gap-3 flex-wrap">
               <a
-                href="https://github.com/Clawdlinux/visual-market-intelligence"
+                href="https://github.com/Clawdlinux/agentic-operator-core"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105"
@@ -173,7 +173,7 @@ export default function OpenSource() {
                 Star on GitHub
               </a>
               <a
-                href="https://github.com/Clawdlinux/visual-market-intelligence/fork"
+                href="https://github.com/Clawdlinux/agentic-operator-core/fork"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105"
@@ -249,7 +249,7 @@ export default function OpenSource() {
               }}
             >
               <span style={{ color: '#00d4aa' }}>$</span>{' '}
-              {`pip install vmi-client && vmi init`}
+              {`git clone https://github.com/Clawdlinux/agentic-operator-core.git`}
             </pre>
 
             {/* Copy button */}

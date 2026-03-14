@@ -19,7 +19,7 @@ const steps = [
     icon: Camera,
     title: "Automated Screenshot Capture",
     description:
-      "VMI captures pixel-perfect screenshots of every target page on your schedule — daily, hourly, or custom intervals.",
+      "Visual Market Intelligence captures pixel-perfect screenshots of every target page on your schedule — daily, hourly, or custom intervals.",
     details: ["Full-page & above-fold capture", "Mobile and desktop viewports", "JavaScript-rendered pages supported", "Geo-distributed capture nodes"],
     color: "#6366f1",
     colorAlpha: "rgba(99, 102, 241, 0.12)",

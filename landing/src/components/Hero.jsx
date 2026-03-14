@@ -284,7 +284,7 @@ export default function Hero() {
           transition={{ duration: 0.5, delay: 0.7 }}
         >
           <a
-            href="mailto:shreyanshsancheti09@gmail.com?subject=VMI%20Demo%20Request"
+            href="mailto:shreyanshsancheti09@gmail.com?subject=Visual%20Market%20Intelligence%20Demo%20Request"
             className="flex items-center gap-2 px-6 py-3 text-sm font-semibold text-[#00d4aa] rounded-xl border border-[#00d4aa]/40 hover:bg-[#00d4aa]/8 hover:border-[#00d4aa]/70 transition-all duration-200 hover:shadow-lg hover:shadow-[#00d4aa]/10 active:scale-95"
             style={{ fontFamily: "'DM Sans', sans-serif" }}
           >

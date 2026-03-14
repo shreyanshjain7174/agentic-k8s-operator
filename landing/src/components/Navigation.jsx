@@ -7,10 +7,10 @@ const NAV_LINKS = [
   { label: 'Use Cases', href: '#use-cases' },
   { label: 'How It Works', href: '#architecture' },
   { label: 'Products', href: '#products' },
-  { label: 'GitHub', href: 'https://github.com/Clawdlinux/visual-market-intelligence', external: true },
+  { label: 'GitHub', href: 'https://github.com/Clawdlinux/agentic-operator-core', external: true },
 ];
 
-const GITHUB_URL = 'https://github.com/Clawdlinux/visual-market-intelligence';
+const GITHUB_URL = 'https://github.com/Clawdlinux/agentic-operator-core';
 
 export default function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -77,7 +77,7 @@ export default function Navigation() {
               className="text-white font-semibold text-lg tracking-tight"
               style={{ fontFamily: "'Syne', sans-serif" }}
             >
-              Visual<span className="text-[#00d4aa]">MI</span>
+              Nine<span className="text-[#00d4aa]">Vigil</span>
             </span>
           </motion.a>
 

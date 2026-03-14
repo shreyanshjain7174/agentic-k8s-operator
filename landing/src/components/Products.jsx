@@ -214,7 +214,7 @@ export default function Products() {
           </p>
         </motion.div>
 
-        {/* Featured product: VMI */}
+        {/* Featured product: Visual Market Intelligence */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -250,7 +250,7 @@ export default function Products() {
                         className="text-xl sm:text-2xl font-bold"
                         style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
                       >
-                        Visual Market Intelligence (VMI)
+                        Visual Market Intelligence
                       </h3>
                       <span
                         className="text-xs font-semibold uppercase tracking-wider"
@@ -265,7 +265,7 @@ export default function Products() {
                     className="text-base sm:text-lg mb-6 leading-relaxed"
                     style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
                   >
-                    Visual Market Intelligence (VMI) puts competitor analysis on autopilot. It
+                    Visual Market Intelligence puts competitor analysis on autopilot. It
                     monitors competitors&apos; websites, pricing, features, and messaging changes,
                     then delivers structured reports your team can act on quickly.
                   </p>
@@ -276,7 +276,7 @@ export default function Products() {
                   >
                     For pricing, rollout details, and a live demo, reach out at{' '}
                     <a
-                      href="mailto:shreyanshsancheti09@gmail.com?subject=VMI%20Demo%20Request"
+                      href="mailto:shreyanshsancheti09@gmail.com?subject=Visual%20Market%20Intelligence%20Demo%20Request"
                       className="underline"
                       style={{ color: '#00d4aa' }}
                     >
@@ -287,7 +287,7 @@ export default function Products() {
 
                   {/* CTA */}
                   <a
-                    href="mailto:shreyanshsancheti09@gmail.com?subject=VMI%20Demo%20Request"
+                    href="mailto:shreyanshsancheti09@gmail.com?subject=Visual%20Market%20Intelligence%20Demo%20Request"
                     className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 hover:brightness-110 hover:shadow-xl active:scale-[0.97]"
                     style={{
                       background: 'linear-gradient(135deg, #00d4aa 0%, #00b894 100%)',

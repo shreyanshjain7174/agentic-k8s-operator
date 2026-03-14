@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { ArrowRight, TrendingDown, DollarSign, Layers, Briefcase } from "lucide-react";
 
-const YAML_PRICING = `# vmi-config: pricing-tracker.yaml
+const YAML_PRICING = `# visual-market-intelligence-config: pricing-tracker.yaml
 targets:
   - name: stripe-pricing
     url: https://stripe.com/pricing
@@ -22,7 +22,7 @@ output:
   format: pdf
   deliver_to: [slack:#competitive-intel, email:team@company.com]`;
 
-const YAML_FEATURE = `# vmi-config: feature-tracker.yaml
+const YAML_FEATURE = `# visual-market-intelligence-config: feature-tracker.yaml
 targets:
   - name: competitor-product-page  
     url: https://competitor.com/product
@@ -42,7 +42,7 @@ alerts:
   channels: [slack, email]
   urgency: high_for_pricing | medium_for_features`;
 
-const YAML_PORTFOLIO = `# vmi-config: portfolio-monitor.yaml
+const YAML_PORTFOLIO = `# visual-market-intelligence-config: portfolio-monitor.yaml
 portfolio:
   - company: Series-B Target
     pages:
@@ -76,7 +76,7 @@ const tabs = [
     problem:
       "Competitors change pricing without warning. Your team finds out weeks later from a customer complaint \u2014 after you\u2019ve already lost deals.",
     solution:
-      "VMI monitors competitor pricing pages daily, detects any change within hours, and delivers AI-analyzed reports explaining what changed and what it means for your positioning.",
+      "Visual Market Intelligence monitors competitor pricing pages daily, detects any change within hours, and delivers AI-analyzed reports explaining what changed and what it means for your positioning.",
     before: { value: "2-3 weeks", label: "Time to detect pricing changes" },
     after: { value: "<4 hours", label: "Automated detection" },
     savings: { value: "Revenue protected", color: "#f59e0b" },
@@ -90,7 +90,7 @@ const tabs = [
     problem:
       "Competitors ship new features and you only find out from your sales team asking \u2018did you see what they launched?\u2019 You\u2019re always playing catch-up.",
     solution:
-      "VMI captures competitor product pages every 6 hours, uses AI vision to detect new features, UI changes, and messaging shifts \u2014 then alerts your team instantly.",
+      "Visual Market Intelligence captures competitor product pages every 6 hours, uses AI vision to detect new features, UI changes, and messaging shifts \u2014 then alerts your team instantly.",
     before: { value: "Days to weeks", label: "Manual discovery of competitor launches" },
     after: { value: "Same day", label: "Automated alerts with AI analysis" },
     savings: { value: "Competitive edge maintained", color: "#00d4aa" },
@@ -104,7 +104,7 @@ const tabs = [
     problem:
       "VC analysts spend 6+ hours per company on manual competitive landscape research. With 20+ portfolio companies, due diligence is perpetually outdated.",
     solution:
-      "VMI continuously monitors portfolio companies and their competitors, delivering weekly structured reports tracking growth signals, product velocity, and market positioning.",
+      "Visual Market Intelligence continuously monitors portfolio companies and their competitors, delivering weekly structured reports tracking growth signals, product velocity, and market positioning.",
     before: { value: "6+ hours/company", label: "Manual research per due diligence" },
     after: { value: "Automated weekly", label: "Always-current intelligence" },
     savings: { value: "100+ analyst hours saved/month", color: "#6366f1" },
@@ -263,7 +263,7 @@ export default function UseCases() {
                 backgroundClip: "text",
               }}
             >
-              VMI
+              Visual Market Intelligence
             </span>
           </h2>
         </motion.div>

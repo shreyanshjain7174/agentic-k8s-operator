@@ -208,14 +208,14 @@ export default function Footer() {
               <div className="flex items-center gap-3 mb-4">
                 <HexLogo />
                 <span className="text-lg font-bold text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
-                  Visual Market Intelligence
+                  NineVigil
                 </span>
               </div>
               <p
                 className="text-sm leading-relaxed max-w-xs mb-2"
                 style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif" }}
               >
-                AI-powered competitive intelligence. Monitor competitors, detect changes, deliver insights — on autopilot.
+                Visual Market Intelligence is an AI-powered competitive intelligence system. Monitor competitors, detect changes, and deliver actionable insights.
               </p>
               <p
                 className="text-xs"
@@ -227,7 +227,7 @@ export default function Footer() {
               {/* GitHub only */}
               <div className="flex items-center gap-3 mt-6">
                 <a
-                  href="https://github.com/Clawdlinux/visual-market-intelligence"
+                  href="https://github.com/Clawdlinux/agentic-operator-core"
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="GitHub"
@@ -284,8 +284,8 @@ export default function Footer() {
               </h4>
               <ul className="space-y-3">
                 {[
-                  { label: 'GitHub', href: 'https://github.com/Clawdlinux/visual-market-intelligence', external: true },
-                  { label: 'Documentation', href: 'https://github.com/Clawdlinux/visual-market-intelligence#readme', external: true },
+                  { label: 'GitHub', href: 'https://github.com/Clawdlinux/agentic-operator-core', external: true },
+                  { label: 'Documentation', href: 'https://github.com/Clawdlinux/agentic-operator-core/tree/main/docs', external: true },
                 ].map(({ label, href, external }) => (
                   <li key={label}><FooterLink href={href} external={external}>{label}</FooterLink></li>
                 ))}
