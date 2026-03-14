@@ -11,6 +11,7 @@ const NAV_LINKS = [
 ];
 
 const GITHUB_URL = 'https://github.com/Clawdlinux/agentic-operator-core';
+const NAV_SCROLL_OFFSET = 88;
 
 export default function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,15 +28,40 @@ export default function Navigation() {
     return () => unsubscribe();
   }, [scrollY]);
 
-  const handleSmoothScroll = (e, href) => {
-    if (href.startsWith('#')) {
-      e.preventDefault();
-      const el = document.querySelector(href);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth' });
-        setMenuOpen(false);
-      }
+  const scrollToAnchor = (href) => {
+    const id = href.replace('#', '');
+    const el = document.getElementById(id) || document.querySelector(href);
+
+    if (!el) {
+      return false;
     }
+
+    const targetTop = el.getBoundingClientRect().top + window.scrollY - NAV_SCROLL_OFFSET;
+    window.scrollTo({ top: Math.max(0, targetTop), behavior: 'smooth' });
+
+    if (window.history?.replaceState) {
+      window.history.replaceState(null, '', href);
+    }
+
+    return true;
+  };
+
+  const handleSmoothScroll = (e, href) => {
+    if (!href.startsWith('#')) {
+      return;
+    }
+
+    e.preventDefault();
+    setMenuOpen(false);
+
+    // Let mobile menu collapse first so target offsets stay accurate.
+    window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        if (!scrollToAnchor(href)) {
+          window.location.hash = href;
+        }
+      }, 40);
+    });
   };
 
   return (
