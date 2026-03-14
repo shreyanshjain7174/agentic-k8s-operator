@@ -12,11 +12,11 @@ const USE_CASES = [
 ];
 
 const TERMINAL_LINES = [
-  { prompt: '$ ', text: 'vmi scan --targets competitors.yaml', delay: 0 },
+  { prompt: '$ ', text: 'visual-market-intelligence scan --targets competitors.yaml', delay: 0 },
   { prompt: '', text: 'Scanning 47 competitor pages...', delay: 1200, dim: true },
   { prompt: '', text: '✓ 47/47 screenshots captured (12.3s)', delay: 2400, teal: true },
   { prompt: '', text: '✓ 8 visual changes detected across 5 competitors', delay: 3600, teal: true },
-  { prompt: '$ ', text: 'vmi analyze --diff --ai-summary', delay: 5200 },
+  { prompt: '$ ', text: 'visual-market-intelligence analyze --diff --ai-summary', delay: 5200 },
   { prompt: '', text: '[AI] Stripe raised Enterprise pricing 18% · New "Scale" tier added', delay: 6400, teal: true },
   { prompt: '', text: '[AI] Report generated → /reports/competitive-intel-jun-2025.pdf', delay: 7600, teal: true },
 ];
@@ -101,7 +101,7 @@ function TerminalWindow() {
           className="ml-3 text-xs text-slate-500 tracking-widest uppercase"
           style={{ fontFamily: "'IBM Plex Mono', monospace" }}
         >
-          vmi — competitive intelligence
+          visual market intelligence — competitive intelligence
         </span>
       </div>
 
