@@ -10,6 +10,7 @@ import UseCases from './components/UseCases';
 import Products from './components/Products';
 import Architecture from './components/Architecture';
 import Trust from './components/Trust';
+import Quickstart from './components/Quickstart';
 import OpenSource from './components/OpenSource';
 import Footer from './components/Footer';
 
@@ -33,6 +34,8 @@ export default function App() {
         <StatsBar />
 
         <Comparison />
+
+        <Quickstart />
 
         <section id="features">
           <Offerings />

@@ -163,7 +163,7 @@ const Comparison = () => {
           }}
         >
           <a
-            href="/docs/01-quickstart.md"
+            href="#quickstart"
             className="px-8 py-3.5 rounded-lg bg-gradient-to-r from-[#00d4aa] to-[#00b88d] text-[#05080f] font-semibold text-base hover:shadow-lg hover:shadow-[#00d4aa]/20 transition-all duration-300 hover:scale-105"
           >
             Start in 5 Minutes

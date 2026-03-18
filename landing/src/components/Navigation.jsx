@@ -5,6 +5,7 @@ import { Menu, X, Star, ExternalLink, Hexagon, BookOpen, Calendar } from 'lucide
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
   { label: 'Comparison', href: '#comparison' },
+  { label: 'Quickstart', href: '#quickstart' },
   { label: 'Use Cases', href: '#use-cases' },
   { label: 'How It Works', href: '#architecture' },
   { label: 'Enterprise Ready', href: '#trust' },
