@@ -3,11 +3,13 @@ import './index.css';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import StatsBar from './components/StatsBar';
+import Comparison from './components/Comparison';
 import Offerings from './components/Offerings';
 import Features from './components/Features';
 import UseCases from './components/UseCases';
 import Products from './components/Products';
 import Architecture from './components/Architecture';
+import Trust from './components/Trust';
 import OpenSource from './components/OpenSource';
 import Footer from './components/Footer';
 
@@ -30,6 +32,8 @@ export default function App() {
 
         <StatsBar />
 
+        <Comparison />
+
         <section id="features">
           <Offerings />
           <Features />
@@ -44,6 +48,8 @@ export default function App() {
         <section id="architecture">
           <Architecture />
         </section>
+
+        <Trust />
 
         <OpenSource />
       </main>

@@ -4,8 +4,10 @@ import { Menu, X, Star, ExternalLink, Hexagon, BookOpen, Calendar } from 'lucide
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
+  { label: 'Comparison', href: '#comparison' },
   { label: 'Use Cases', href: '#use-cases' },
   { label: 'How It Works', href: '#architecture' },
+  { label: 'Enterprise Ready', href: '#trust' },
   { label: 'Products', href: '#products' },
   { label: 'GitHub', href: 'https://github.com/Clawdlinux/agentic-operator-core', external: true },
 ];
