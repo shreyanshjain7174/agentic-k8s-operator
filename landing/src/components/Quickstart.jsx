@@ -257,7 +257,7 @@ export default function Quickstart() {
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:brightness-110 hover:shadow-xl active:scale-[0.97]"
             style={{
               background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
-              color: currentTheme.bg.primary,
+              color: '#03231d',
             }}
           >
             <BookOpen size={16} />

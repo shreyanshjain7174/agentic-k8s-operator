@@ -226,7 +226,7 @@ const Comparison = () => {
             className="px-8 py-3.5 rounded-lg font-semibold text-base transition-all duration-300 hover:scale-105 hover:brightness-110"
             style={{
               background: `linear-gradient(to right, ${currentTheme.accent.teal}, #00b88d)`,
-              color: currentTheme.bg.primary,
+              color: '#03231d',
             }}
           >
             Start in 5 Minutes

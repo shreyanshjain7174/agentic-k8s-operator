@@ -293,7 +293,7 @@ export default function Products() {
                     className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 hover:brightness-110 hover:shadow-xl active:scale-[0.97]"
                     style={{
                       background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
-                      color: currentTheme.bg.primary,
+                      color: '#03231d',
                     }}
                   >
                     Get in Touch
