@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
 import { Menu, X, Star, ExternalLink, Hexagon, BookOpen, Calendar } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
+import ThemeToggle from './ThemeToggle';
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
@@ -22,6 +24,7 @@ export default function Navigation() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { scrollY } = useScroll();
+  const { currentTheme } = useTheme();
 
   const bgOpacity = useTransform(scrollY, [0, 50], [0, 1]);
 
@@ -78,8 +81,11 @@ export default function Navigation() {
     >
       {/* Glass background layer */}
       <motion.div
-        className="absolute inset-0 bg-[#05080f] border-b border-white/5"
-        style={{ opacity: bgOpacity }}
+        className="absolute inset-0 border-b border-white/5 transition-colors duration-300"
+        style={{ 
+          opacity: bgOpacity,
+          backgroundColor: currentTheme.bg.primary,
+        }}
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -95,19 +101,22 @@ export default function Navigation() {
           >
             <div className="relative">
               <Hexagon
-                className="w-8 h-8 text-[#00d4aa] transition-transform duration-300 group-hover:rotate-12"
+                className="w-8 h-8 transition-transform duration-300 group-hover:rotate-12"
                 strokeWidth={1.5}
-                fill="rgba(0,212,170,0.1)"
+                style={{ 
+                  color: currentTheme.accent.teal,
+                  fill: `${currentTheme.accent.teal}20`
+                }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-2 h-2 rounded-full bg-[#00d4aa] opacity-80" />
+                <div className="w-2 h-2 rounded-full opacity-80" style={{ backgroundColor: currentTheme.accent.teal }} />
               </div>
             </div>
             <span
-              className="text-white font-semibold text-lg tracking-tight"
-              style={{ fontFamily: "'Syne', sans-serif" }}
+              className="font-semibold text-lg tracking-tight transition-colors duration-300"
+              style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
             >
-              Agentic <span className="text-[#00d4aa]">Operator</span>
+              Agentic <span style={{ color: currentTheme.accent.teal }}>Operator</span>
             </span>
           </motion.a>
 
@@ -125,8 +134,20 @@ export default function Navigation() {
                 target={link.external ? '_blank' : undefined}
                 rel={link.external ? 'noopener noreferrer' : undefined}
                 onClick={!link.external ? (e) => handleSmoothScroll(e, link.href) : undefined}
-                className="flex items-center gap-1 px-4 py-2 text-sm text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-200 font-medium"
-                style={{ fontFamily: "'DM Sans', sans-serif" }}
+                className="flex items-center gap-1 px-4 py-2 text-sm rounded-lg transition-all duration-200 font-medium"
+                style={{ 
+                  fontFamily: "'DM Sans', sans-serif",
+                  color: currentTheme.text.secondary,
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = currentTheme.text.primary;
+                  e.currentTarget.style.backgroundColor = `${currentTheme.bg.secondary}80`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = currentTheme.text.secondary;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
               >
                 {link.label}
                 {link.external && <ExternalLink className="w-3 h-3 opacity-60" />}
@@ -145,8 +166,23 @@ export default function Navigation() {
               href={QUICKSTART_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-slate-300 border border-white/10 rounded-lg hover:border-[#00d4aa]/40 hover:text-[#00d4aa] transition-all duration-200 bg-white/5 hover:bg-[#00d4aa]/5"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-all duration-200"
+              style={{ 
+                fontFamily: "'DM Sans', sans-serif",
+                color: currentTheme.text.secondary,
+                border: `1px solid ${currentTheme.border.light}`,
+                backgroundColor: currentTheme.bg.secondary
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = currentTheme.accent.teal;
+                e.currentTarget.style.borderColor = currentTheme.accent.teal;
+                e.currentTarget.style.backgroundColor = `${currentTheme.accent.teal}15`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = currentTheme.text.secondary;
+                e.currentTarget.style.borderColor = currentTheme.border.light;
+                e.currentTarget.style.backgroundColor = currentTheme.bg.secondary;
+              }}
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>Start in 5m</span>
@@ -155,8 +191,23 @@ export default function Navigation() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 px-4 py-2 text-sm text-slate-300 border border-white/10 rounded-lg hover:border-[#00d4aa]/40 hover:text-[#00d4aa] transition-all duration-200 bg-white/5 hover:bg-[#00d4aa]/5"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
+              className="flex items-center gap-1.5 px-4 py-2 text-sm rounded-lg transition-all duration-200"
+              style={{ 
+                fontFamily: "'DM Sans', sans-serif",
+                color: currentTheme.text.secondary,
+                border: `1px solid ${currentTheme.border.light}`,
+                backgroundColor: currentTheme.bg.secondary
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = currentTheme.accent.teal;
+                e.currentTarget.style.borderColor = currentTheme.accent.teal;
+                e.currentTarget.style.backgroundColor = `${currentTheme.accent.teal}15`;
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = currentTheme.text.secondary;
+                e.currentTarget.style.borderColor = currentTheme.border.light;
+                e.currentTarget.style.backgroundColor = currentTheme.bg.secondary;
+              }}
             >
               <Star className="w-3.5 h-3.5" />
               <span>Star</span>
@@ -166,23 +217,33 @@ export default function Navigation() {
               className="flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-200 hover:brightness-110"
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                background: 'linear-gradient(135deg, #00d4aa 0%, #00b894 100%)',
-                color: '#05080f',
+                background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
+                color: currentTheme.bg.primary,
               }}
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>Book Demo</span>
             </a>
+            <ThemeToggle />
           </motion.div>
 
           {/* Mobile hamburger */}
           <motion.button
-            className="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-200"
+            className="md:hidden p-2 rounded-lg transition-all duration-200"
             onClick={() => setMenuOpen((v) => !v)}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            style={{ color: currentTheme.text.secondary }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = currentTheme.text.primary;
+              e.currentTarget.style.backgroundColor = `${currentTheme.bg.secondary}80`;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = currentTheme.text.secondary;
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
           >
             {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </motion.button>
@@ -196,9 +257,14 @@ export default function Navigation() {
         animate={{ height: menuOpen ? 'auto' : 0, opacity: menuOpen ? 1 : 0 }}
         transition={{ duration: 0.25, ease: 'easeInOut' }}
       >
-        <div
-          className="relative border-t border-white/5 bg-[#05080f]/95 backdrop-blur-xl px-4 py-4 flex flex-col gap-1"
-        >
+          <div
+            className="relative border-t border-white/5 overflow-hidden transition-colors duration-300 px-4 py-4 flex flex-col gap-1"
+            style={{
+              backgroundColor: `${currentTheme.bg.primary}F2`,
+              borderBottomColor: currentTheme.border.light,
+              borderBottomWidth: '1px'
+            }}
+          >
           {NAV_LINKS.map((link) => (
             <a
               key={link.label}
@@ -206,21 +272,48 @@ export default function Navigation() {
               target={link.external ? '_blank' : undefined}
               rel={link.external ? 'noopener noreferrer' : undefined}
               onClick={!link.external ? (e) => handleSmoothScroll(e, link.href) : undefined}
-              className="flex items-center justify-between px-4 py-3 text-sm text-slate-400 hover:text-white rounded-lg hover:bg-white/5 transition-all duration-200"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
+                className="flex items-center justify-between px-4 py-3 text-sm rounded-lg transition-all duration-200"
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  color: currentTheme.text.secondary,
+                  backgroundColor: 'transparent'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = currentTheme.text.primary;
+                  e.currentTarget.style.backgroundColor = `${currentTheme.bg.secondary}80`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = currentTheme.text.secondary;
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
             >
               <span>{link.label}</span>
               {link.external && <ExternalLink className="w-3.5 h-3.5 opacity-60" />}
             </a>
           ))}
 
-          <div className="mt-3 pt-3 border-t border-white/5 flex flex-col gap-2">
+          <div className="mt-3 pt-3 flex flex-col gap-2" style={{ borderTopWidth: '1px', borderTopColor: currentTheme.border.light }}>
             <a
               href={QUICKSTART_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-slate-300 border border-white/10 rounded-lg hover:border-[#00d4aa]/40 hover:text-[#00d4aa] transition-all duration-200"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
+                className="flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-lg transition-all duration-200"
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  color: currentTheme.text.secondary,
+                  border: `1px solid ${currentTheme.border.light}`,
+                  backgroundColor: currentTheme.bg.secondary
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = currentTheme.accent.teal;
+                  e.currentTarget.style.borderColor = currentTheme.accent.teal;
+                  e.currentTarget.style.backgroundColor = `${currentTheme.accent.teal}15`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = currentTheme.text.secondary;
+                  e.currentTarget.style.borderColor = currentTheme.border.light;
+                  e.currentTarget.style.backgroundColor = currentTheme.bg.secondary;
+                }}
             >
               <BookOpen className="w-4 h-4" />
               <span>Start in 5 minutes</span>
@@ -229,8 +322,23 @@ export default function Navigation() {
               href={GITHUB_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 px-4 py-3 text-sm text-slate-300 border border-white/10 rounded-lg hover:border-[#00d4aa]/40 hover:text-[#00d4aa] transition-all duration-200"
-              style={{ fontFamily: "'DM Sans', sans-serif" }}
+                className="flex items-center justify-center gap-2 px-4 py-3 text-sm rounded-lg transition-all duration-200"
+                style={{
+                  fontFamily: "'DM Sans', sans-serif",
+                  color: currentTheme.text.secondary,
+                  border: `1px solid ${currentTheme.border.light}`,
+                  backgroundColor: currentTheme.bg.secondary
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.color = currentTheme.accent.teal;
+                  e.currentTarget.style.borderColor = currentTheme.accent.teal;
+                  e.currentTarget.style.backgroundColor = `${currentTheme.accent.teal}15`;
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.color = currentTheme.text.secondary;
+                  e.currentTarget.style.borderColor = currentTheme.border.light;
+                  e.currentTarget.style.backgroundColor = currentTheme.bg.secondary;
+                }}
             >
               <Star className="w-4 h-4" />
               <span>Star on GitHub</span>
@@ -240,8 +348,8 @@ export default function Navigation() {
               className="flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold rounded-lg transition-all duration-200 hover:brightness-110"
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                background: 'linear-gradient(135deg, #00d4aa 0%, #00b894 100%)',
-                color: '#05080f',
+                background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
+                color: currentTheme.bg.primary,
               }}
             >
               <Calendar className="w-4 h-4" />

@@ -9,6 +9,7 @@ import {
   Building2,
   Lock,
 } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 const ENTERPRISE_BENEFITS = [
   {
@@ -60,29 +61,29 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
 };
 
-function BenefitRow({ benefit }) {
+function BenefitRow({ benefit, currentTheme }) {
   const Icon = benefit.icon;
   return (
     <div className="flex items-start gap-4">
       <div
         className="mt-0.5 w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
         style={{
-          background: 'rgba(0, 212, 170, 0.10)',
-          border: '1px solid rgba(0, 212, 170, 0.18)',
+          background: `${currentTheme.accent.teal}1A`,
+          border: `1px solid ${currentTheme.accent.teal}2E`,
         }}
       >
-        <Icon size={18} color="#00d4aa" strokeWidth={1.75} />
+        <Icon size={18} color={currentTheme.accent.teal} strokeWidth={1.75} />
       </div>
       <div>
         <h4
           className="text-sm font-semibold mb-0.5"
-          style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+          style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
         >
           {benefit.title}
         </h4>
         <p
           className="text-sm leading-relaxed"
-          style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", color: currentTheme.text.tertiary }}
         >
           {benefit.description}
         </p>
@@ -91,15 +92,15 @@ function BenefitRow({ benefit }) {
   );
 }
 
-function ComingSoonCard({ product }) {
+function ComingSoonCard({ product, currentTheme }) {
   const Icon = product.icon;
   return (
     <motion.div
       variants={itemVariants}
       className="relative rounded-xl p-5 transition-all duration-300 group"
       style={{
-        background: 'rgba(13, 21, 37, 0.5)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: `${currentTheme.bg.secondary}CC`,
+        border: `1px solid ${currentTheme.border.light}`,
       }}
     >
       <div
@@ -130,13 +131,13 @@ function ComingSoonCard({ product }) {
         </div>
         <h4
           className="text-base font-semibold mb-1.5"
-          style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+          style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
         >
           {product.title}
         </h4>
         <p
           className="text-sm leading-relaxed"
-          style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", color: currentTheme.text.tertiary }}
         >
           {product.description}
         </p>
@@ -146,11 +147,16 @@ function ComingSoonCard({ product }) {
 }
 
 export default function Products() {
+  const { currentTheme } = useTheme();
+
   return (
     <section
       id="products"
       className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
-      style={{ background: '#05080f' }}
+      style={{
+        background: currentTheme.bg.primary,
+        transition: 'background-color 300ms ease-in-out',
+      }}
     >
       {/* Decorative background glow */}
       <div
@@ -163,7 +169,7 @@ export default function Products() {
           height: 500,
           borderRadius: '50%',
           background:
-            'radial-gradient(circle, rgba(0,212,170,0.06) 0%, rgba(99,102,241,0.04) 40%, transparent 70%)',
+            `radial-gradient(circle, ${currentTheme.accent.teal}0F 0%, ${currentTheme.accent.indigo}0A 40%, transparent 70%)`,
           filter: 'blur(60px)',
         }}
       />
@@ -180,9 +186,9 @@ export default function Products() {
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-6"
             style={{
-              background: 'rgba(0, 212, 170, 0.08)',
-              border: '1px solid rgba(0, 212, 170, 0.2)',
-              color: '#00d4aa',
+              background: `${currentTheme.accent.teal}14`,
+              border: `1px solid ${currentTheme.accent.teal}33`,
+              color: currentTheme.accent.teal,
               fontFamily: "'IBM Plex Mono', monospace",
             }}
           >
@@ -191,11 +197,11 @@ export default function Products() {
           </div>
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4"
-            style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+            style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
           >
             <span
               style={{
-                background: 'linear-gradient(135deg, #00d4aa, #6366f1)',
+                background: `linear-gradient(135deg, ${currentTheme.accent.teal}, ${currentTheme.accent.indigo})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -206,7 +212,7 @@ export default function Products() {
           </h2>
           <p
             className="text-base sm:text-lg max-w-2xl mx-auto"
-            style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
+            style={{ fontFamily: "'DM Sans', sans-serif", color: currentTheme.text.tertiary }}
           >
             For teams deploying Agentic Operator in production with managed support and hardened cluster coordination.
           </p>
@@ -223,12 +229,12 @@ export default function Products() {
             variants={itemVariants}
             className="rounded-2xl p-px mb-10"
             style={{
-              background: 'linear-gradient(135deg, rgba(0,212,170,0.35), rgba(99,102,241,0.25), rgba(0,212,170,0.1))',
+              background: `linear-gradient(135deg, ${currentTheme.accent.teal}59, ${currentTheme.accent.indigo}40, ${currentTheme.accent.teal}1A)`,
             }}
           >
             <div
               className="rounded-2xl p-8 sm:p-10"
-              style={{ background: 'rgba(5, 8, 15, 0.95)' }}
+              style={{ background: currentTheme.bg.overlay }}
             >
               <div className="grid lg:grid-cols-2 gap-10 items-start">
                 {/* Left: product info */}
@@ -237,22 +243,22 @@ export default function Products() {
                     <div
                       className="w-12 h-12 rounded-xl flex items-center justify-center"
                       style={{
-                        background: 'linear-gradient(135deg, rgba(0,212,170,0.2), rgba(99,102,241,0.15))',
-                        border: '1px solid rgba(0, 212, 170, 0.25)',
+                        background: `linear-gradient(135deg, ${currentTheme.accent.teal}33, ${currentTheme.accent.indigo}26)`,
+                        border: `1px solid ${currentTheme.accent.teal}40`,
                       }}
                     >
-                      <Shield size={24} color="#00d4aa" strokeWidth={1.5} />
+                      <Shield size={24} color={currentTheme.accent.teal} strokeWidth={1.5} />
                     </div>
                     <div>
                       <h3
                         className="text-xl sm:text-2xl font-bold"
-                        style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+                        style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
                       >
                         Managed Support
                       </h3>
                       <span
                         className="text-xs font-semibold uppercase tracking-wider"
-                        style={{ color: '#00d4aa', fontFamily: "'IBM Plex Mono', monospace" }}
+                        style={{ color: currentTheme.accent.teal, fontFamily: "'IBM Plex Mono', monospace" }}
                       >
                         Enterprise
                       </span>
@@ -261,20 +267,20 @@ export default function Products() {
 
                   <p
                     className="text-base sm:text-lg mb-6 leading-relaxed"
-                    style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
+                    style={{ fontFamily: "'DM Sans', sans-serif", color: currentTheme.text.tertiary }}
                   >
                     Platform teams can get expert support for deploying Agentic Operator in production with managed upgrades, workload design guidance, incident response, and hardened cluster coordination.
                   </p>
 
                   <p
                     className="text-sm mb-6"
-                    style={{ color: '#94a3b8', fontFamily: "'DM Sans', sans-serif" }}
+                    style={{ color: currentTheme.text.tertiary, fontFamily: "'DM Sans', sans-serif" }}
                   >
                     For enterprise support inquiries, reach out at{' '}
                     <a
                       href="mailto:shreyanshsancheti09@gmail.com?subject=Enterprise%20Support%20Inquiry"
                       className="underline"
-                      style={{ color: '#00d4aa' }}
+                      style={{ color: currentTheme.accent.teal }}
                     >
                       shreyanshsancheti09@gmail.com
                     </a>
@@ -286,8 +292,8 @@ export default function Products() {
                     href="mailto:shreyanshsancheti09@gmail.com?subject=Enterprise%20Support%20Inquiry"
                     className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-xl transition-all duration-200 hover:brightness-110 hover:shadow-xl active:scale-[0.97]"
                     style={{
-                      background: 'linear-gradient(135deg, #00d4aa 0%, #00b894 100%)',
-                      color: '#05080f',
+                      background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
+                      color: currentTheme.bg.primary,
                     }}
                   >
                     Get in Touch
@@ -298,7 +304,7 @@ export default function Products() {
                 {/* Right: benefits list */}
                 <div className="flex flex-col gap-5">
                   {ENTERPRISE_BENEFITS.map((benefit) => (
-                    <BenefitRow key={benefit.title} benefit={benefit} />
+                    <BenefitRow key={benefit.title} benefit={benefit} currentTheme={currentTheme} />
                   ))}
                 </div>
               </div>
@@ -312,14 +318,14 @@ export default function Products() {
           >
             <p
               className="text-xs font-semibold uppercase tracking-widest text-center mb-5"
-              style={{ color: '#64748b', fontFamily: "'IBM Plex Mono', monospace" }}
+              style={{ color: currentTheme.text.muted, fontFamily: "'IBM Plex Mono', monospace" }}
             >
               Additional Services
             </p>
           </motion.div>
           <div className="grid sm:grid-cols-2 gap-5">
             {ENTERPRISE_ADD_ONS.map((product) => (
-              <ComingSoonCard key={product.title} product={product} />
+              <ComingSoonCard key={product.title} product={product} currentTheme={currentTheme} />
             ))}
           </div>
         </motion.div>

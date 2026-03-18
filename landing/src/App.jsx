@@ -1,4 +1,5 @@
 import './index.css';
+import { useTheme } from './hooks/useTheme';
 
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
@@ -16,13 +17,16 @@ import Waitlist from './components/Waitlist';
 import Footer from './components/Footer';
 
 export default function App() {
+  const { currentTheme } = useTheme();
+  
   return (
     <div
       style={{
-        background: '#05080f',
+        background: currentTheme.bg.primary,
         minHeight: '100vh',
         cursor: 'default',
         scrollBehavior: 'smooth',
+        transition: 'background-color 300ms ease-in-out',
       }}
     >
       <Navigation />

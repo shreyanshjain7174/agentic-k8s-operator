@@ -9,6 +9,7 @@ import {
   BookOpen,
   Clock,
 } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 const STEPS = [
   {
@@ -63,15 +64,15 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease: 'easeOut' } },
 };
 
-function StepCard({ step }) {
+function StepCard({ step, currentTheme }) {
   const Icon = step.icon;
   return (
     <motion.div
       variants={itemVariants}
       className="relative rounded-xl p-5 transition-all duration-300 group flex flex-col"
       style={{
-        background: 'rgba(13, 21, 37, 0.6)',
-        border: '1px solid rgba(255,255,255,0.07)',
+        background: `${currentTheme.bg.secondary}CC`,
+        border: `1px solid ${currentTheme.border.light}`,
       }}
     >
       <div
@@ -105,14 +106,14 @@ function StepCard({ step }) {
 
         <h4
           className="text-sm font-semibold mb-1.5"
-          style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+          style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
         >
           {step.title}
         </h4>
 
         <p
           className="text-xs leading-relaxed flex-1 mb-3"
-          style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
+          style={{ fontFamily: "'DM Sans', sans-serif", color: currentTheme.text.tertiary }}
         >
           {step.description}
         </p>
@@ -121,8 +122,8 @@ function StepCard({ step }) {
         <div
           className="rounded-md p-2.5"
           style={{
-            background: 'rgba(0, 0, 0, 0.45)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: `${currentTheme.bg.primary}A6`,
+            border: `1px solid ${currentTheme.border.light}`,
           }}
         >
           <code
@@ -138,11 +139,16 @@ function StepCard({ step }) {
 }
 
 export default function Quickstart() {
+  const { currentTheme } = useTheme();
+
   return (
     <section
       id="quickstart"
       className="relative py-24 px-4 sm:px-6 lg:px-8 overflow-hidden"
-      style={{ background: '#05080f' }}
+      style={{
+        background: currentTheme.bg.primary,
+        transition: 'background-color 300ms ease-in-out',
+      }}
     >
       {/* Background glow */}
       <div
@@ -155,7 +161,7 @@ export default function Quickstart() {
           height: 400,
           borderRadius: '50%',
           background:
-            'radial-gradient(circle, rgba(99,102,241,0.07) 0%, rgba(0,212,170,0.04) 50%, transparent 70%)',
+            `radial-gradient(circle, ${currentTheme.accent.indigo}12 0%, ${currentTheme.accent.teal}0A 50%, transparent 70%)`,
           filter: 'blur(70px)',
         }}
       />
@@ -172,9 +178,9 @@ export default function Quickstart() {
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-6"
             style={{
-              background: 'rgba(99, 102, 241, 0.08)',
-              border: '1px solid rgba(99, 102, 241, 0.2)',
-              color: '#6366f1',
+              background: `${currentTheme.accent.indigo}14`,
+              border: `1px solid ${currentTheme.accent.indigo}40`,
+              color: currentTheme.accent.indigo,
               fontFamily: "'IBM Plex Mono', monospace",
             }}
           >
@@ -184,12 +190,12 @@ export default function Quickstart() {
 
           <h2
             className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-4"
-            style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+            style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
           >
             From Repo to{' '}
             <span
               style={{
-                background: 'linear-gradient(135deg, #00d4aa, #6366f1)',
+                background: `linear-gradient(135deg, ${currentTheme.accent.teal}, ${currentTheme.accent.indigo})`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
@@ -201,7 +207,7 @@ export default function Quickstart() {
 
           <p
             className="text-base sm:text-lg max-w-2xl mx-auto"
-            style={{ fontFamily: "'DM Sans', sans-serif", color: '#94a3b8' }}
+            style={{ fontFamily: "'DM Sans', sans-serif", color: currentTheme.text.tertiary }}
           >
             No SaaS account. No vendor lock-in. Five commands and your first agent is live on
             Kubernetes.
@@ -219,7 +225,7 @@ export default function Quickstart() {
               right: '9%',
               height: 1,
               background:
-                'linear-gradient(to right, transparent, rgba(0,212,170,0.2) 20%, rgba(99,102,241,0.2) 80%, transparent)',
+                `linear-gradient(to right, transparent, ${currentTheme.accent.teal}33 20%, ${currentTheme.accent.indigo}33 80%, transparent)`,
             }}
           />
 
@@ -231,7 +237,7 @@ export default function Quickstart() {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4"
           >
             {STEPS.map((step) => (
-              <StepCard key={step.step} step={step} />
+              <StepCard key={step.step} step={step} currentTheme={currentTheme} />
             ))}
           </motion.div>
         </div>
@@ -250,8 +256,8 @@ export default function Quickstart() {
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:brightness-110 hover:shadow-xl active:scale-[0.97]"
             style={{
-              background: 'linear-gradient(135deg, #00d4aa 0%, #00b894 100%)',
-              color: '#05080f',
+              background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
+              color: currentTheme.bg.primary,
             }}
           >
             <BookOpen size={16} />
@@ -262,10 +268,18 @@ export default function Quickstart() {
             href="https://github.com/Clawdlinux/agentic-operator-core"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:border-[#00d4aa]/50 hover:text-[#00d4aa] active:scale-[0.97]"
+            className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl text-sm font-semibold transition-all duration-200 active:scale-[0.97]"
             style={{
-              border: '1px solid rgba(255,255,255,0.12)',
-              color: '#e2e8f0',
+              border: `1px solid ${currentTheme.border.medium}`,
+              color: currentTheme.text.primary,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = `${currentTheme.accent.teal}80`;
+              e.currentTarget.style.color = currentTheme.accent.teal;
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = currentTheme.border.medium;
+              e.currentTarget.style.color = currentTheme.text.primary;
             }}
           >
             Star on GitHub
