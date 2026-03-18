@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Github, X, Mail } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 // ─── Legal modals content ────────────────────────────────────────────────────
 
@@ -88,7 +89,7 @@ This Code of Conduct is adapted from the Contributor Covenant, version 2.1.`,
 
 // ─── Modal component ──────────────────────────────────────────────────────────
 
-function LegalModal({ open, onClose, title, content }) {
+function LegalModal({ open, onClose, title, content, currentTheme, theme }) {
   if (!open) return null;
   return (
     <div
@@ -99,29 +100,32 @@ function LegalModal({ open, onClose, title, content }) {
       <div
         className="relative w-full max-w-lg max-h-[80vh] flex flex-col rounded-2xl overflow-hidden"
         style={{
-          background: '#0d1525',
-          border: '1px solid rgba(0,212,170,0.2)',
-          boxShadow: '0 0 60px rgba(0,212,170,0.08)',
+          background: currentTheme.bg.secondary,
+          border: `1px solid ${currentTheme.border.medium}`,
+          boxShadow:
+            theme === 'dark'
+              ? '0 0 60px rgba(0,212,170,0.08)'
+              : '0 12px 42px rgba(15,23,42,0.16)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div
           className="flex items-center justify-between px-6 py-4 flex-shrink-0"
-          style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+          style={{ borderBottom: `1px solid ${currentTheme.border.light}` }}
         >
           <span
             className="text-base font-bold"
-            style={{ fontFamily: "'Syne', sans-serif", color: '#e2e8f0' }}
+            style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
           >
             {title}
           </span>
           <button
             onClick={onClose}
             className="flex items-center justify-center w-8 h-8 rounded-lg transition-colors"
-            style={{ color: 'rgba(255,255,255,0.4)', background: 'rgba(255,255,255,0.04)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = '#e2e8f0'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.4)'; }}
+            style={{ color: currentTheme.text.tertiary, background: currentTheme.bg.tertiary }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = currentTheme.text.primary; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = currentTheme.text.tertiary; }}
           >
             <X size={16} />
           </button>
@@ -132,7 +136,7 @@ function LegalModal({ open, onClose, title, content }) {
             className="text-sm leading-relaxed whitespace-pre-wrap"
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              color: 'rgba(255,255,255,0.55)',
+              color: currentTheme.text.tertiary,
             }}
           >
             {content}
@@ -145,30 +149,30 @@ function LegalModal({ open, onClose, title, content }) {
 
 // ─── Hexagon logo ─────────────────────────────────────────────────────────────
 
-function HexLogo() {
+function HexLogo({ accent }) {
   return (
     <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <polygon points="16,2 29,9 29,23 16,30 3,23 3,9" stroke="#00d4aa" strokeWidth="1.5" fill="rgba(0,212,170,0.1)" />
-      <polygon points="16,7 25,12 25,20 16,25 7,20 7,12" stroke="#00d4aa" strokeWidth="0.75" fill="rgba(0,212,170,0.05)" strokeDasharray="2 1" />
-      <circle cx="16" cy="16" r="2" fill="#00d4aa" />
-      <circle cx="16" cy="10" r="1" fill="#00d4aa" opacity="0.6" />
-      <circle cx="21" cy="13" r="1" fill="#00d4aa" opacity="0.6" />
-      <circle cx="21" cy="19" r="1" fill="#00d4aa" opacity="0.6" />
-      <circle cx="16" cy="22" r="1" fill="#00d4aa" opacity="0.6" />
-      <circle cx="11" cy="19" r="1" fill="#00d4aa" opacity="0.6" />
-      <circle cx="11" cy="13" r="1" fill="#00d4aa" opacity="0.6" />
+      <polygon points="16,2 29,9 29,23 16,30 3,23 3,9" stroke={accent} strokeWidth="1.5" fill={`${accent}1A`} />
+      <polygon points="16,7 25,12 25,20 16,25 7,20 7,12" stroke={accent} strokeWidth="0.75" fill={`${accent}0D`} strokeDasharray="2 1" />
+      <circle cx="16" cy="16" r="2" fill={accent} />
+      <circle cx="16" cy="10" r="1" fill={accent} opacity="0.6" />
+      <circle cx="21" cy="13" r="1" fill={accent} opacity="0.6" />
+      <circle cx="21" cy="19" r="1" fill={accent} opacity="0.6" />
+      <circle cx="16" cy="22" r="1" fill={accent} opacity="0.6" />
+      <circle cx="11" cy="19" r="1" fill={accent} opacity="0.6" />
+      <circle cx="11" cy="13" r="1" fill={accent} opacity="0.6" />
     </svg>
   );
 }
 
 // ─── Link helper ──────────────────────────────────────────────────────────────
 
-function FooterLink({ href, external, onClick, children }) {
+function FooterLink({ href, external, onClick, children, baseColor, hoverColor }) {
   const common = {
     className: 'text-sm transition-colors duration-200 cursor-pointer',
-    style: { color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif", textDecoration: 'none' },
-    onMouseEnter: (e) => { e.currentTarget.style.color = '#00d4aa'; },
-    onMouseLeave: (e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; },
+    style: { color: baseColor, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none' },
+    onMouseEnter: (e) => { e.currentTarget.style.color = hoverColor; },
+    onMouseLeave: (e) => { e.currentTarget.style.color = baseColor; },
   };
   if (onClick) return <button {...common} onClick={onClick} style={{ ...common.style, background: 'none', border: 'none', padding: 0 }}>{children}</button>;
   return <a href={href} target={external ? '_blank' : undefined} rel={external ? 'noopener noreferrer' : undefined} {...common}>{children}</a>;
@@ -177,7 +181,10 @@ function FooterLink({ href, external, onClick, children }) {
 // ─── Main footer ──────────────────────────────────────────────────────────────
 
 export default function Footer() {
+  const { currentTheme, theme } = useTheme();
   const [modal, setModal] = useState(null); // 'terms' | 'privacy' | 'conduct' | null
+
+  const withAlpha = (hex, alpha) => `${hex}${alpha}`;
 
   const openModal = (key) => setModal(key);
   const closeModal = () => setModal(null);
@@ -192,10 +199,17 @@ export default function Footer() {
           onClose={closeModal}
           title={LEGAL[key].title}
           content={LEGAL[key].content}
+          currentTheme={currentTheme}
+          theme={theme}
         />
       ))}
 
-      <footer style={{ background: '#05080f', borderTop: '1px solid rgba(0,212,170,0.2)' }}>
+      <footer
+        style={{
+          background: currentTheme.bg.primary,
+          borderTop: `1px solid ${withAlpha(currentTheme.accent.teal, '33')}`,
+        }}
+      >
         <div className="max-w-6xl mx-auto px-6 pt-16 pb-8">
 
           {/* Main grid: brand (2/5) + 3 columns */}
@@ -204,26 +218,29 @@ export default function Footer() {
             {/* Brand column */}
             <div className="lg:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                <HexLogo />
-                <span className="text-lg font-bold text-white" style={{ fontFamily: "'Syne', sans-serif" }}>
+                <HexLogo accent={currentTheme.accent.teal} />
+                <span
+                  className="text-lg font-bold"
+                  style={{ fontFamily: "'Syne', sans-serif", color: currentTheme.text.primary }}
+                >
                   Agentic Operator
                 </span>
               </div>
               <p
                 className="text-sm leading-relaxed max-w-xs mb-2"
-                style={{ color: 'rgba(255,255,255,0.4)', fontFamily: "'DM Sans', sans-serif" }}
+                style={{ color: currentTheme.text.tertiary, fontFamily: "'DM Sans', sans-serif" }}
               >
                 Open-source Kubernetes operator for policy-aware AI agent workloads. Apache 2.0 licensed.
               </p>
               <p
                 className="text-xs"
-                style={{ color: 'rgba(255,255,255,0.22)', fontFamily: "'DM Sans', sans-serif" }}
+                style={{ color: currentTheme.text.muted, fontFamily: "'DM Sans', sans-serif" }}
               >
                 Nine Rewards Solutions Pvt. Ltd. · Bangalore
               </p>
               <p
                 className="text-xs mt-1"
-                style={{ color: 'rgba(255,255,255,0.22)', fontFamily: "'DM Sans', sans-serif" }}
+                style={{ color: currentTheme.text.muted, fontFamily: "'DM Sans', sans-serif" }}
               >
                 Agentic Operator · Apache 2.0 · Clawdlinux
               </p>
@@ -237,20 +254,26 @@ export default function Footer() {
                   aria-label="GitHub"
                   className="flex items-center justify-center w-9 h-9 rounded-lg transition-all duration-200 hover:scale-110"
                   style={{
-                    background: 'rgba(255,255,255,0.05)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: 'rgba(255,255,255,0.5)',
+                    background:
+                      theme === 'dark'
+                        ? withAlpha(currentTheme.bg.secondary, '8C')
+                        : withAlpha(currentTheme.bg.secondary, 'D9'),
+                    border: `1px solid ${currentTheme.border.light}`,
+                    color: currentTheme.text.tertiary,
                     textDecoration: 'none',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(0,212,170,0.1)';
-                    e.currentTarget.style.borderColor = 'rgba(0,212,170,0.3)';
-                    e.currentTarget.style.color = '#00d4aa';
+                    e.currentTarget.style.background = withAlpha(currentTheme.accent.teal, theme === 'dark' ? '1A' : '14');
+                    e.currentTarget.style.borderColor = withAlpha(currentTheme.accent.teal, '4D');
+                    e.currentTarget.style.color = currentTheme.accent.teal;
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                    e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                    e.currentTarget.style.background =
+                      theme === 'dark'
+                        ? withAlpha(currentTheme.bg.secondary, '8C')
+                        : withAlpha(currentTheme.bg.secondary, 'D9');
+                    e.currentTarget.style.borderColor = currentTheme.border.light;
+                    e.currentTarget.style.color = currentTheme.text.tertiary;
                   }}
                 >
                   <Github size={17} />
@@ -262,7 +285,7 @@ export default function Footer() {
             <div>
               <h4
                 className="text-xs font-semibold tracking-widest uppercase mb-5"
-                style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em' }}
+                style={{ color: currentTheme.text.muted, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em' }}
               >
                 Product
               </h4>
@@ -273,7 +296,15 @@ export default function Footer() {
                   { label: 'Architecture', href: '#architecture' },
                   { label: 'Enterprise', href: '#products' },
                 ].map(({ label, href }) => (
-                  <li key={label}><FooterLink href={href}>{label}</FooterLink></li>
+                  <li key={label}>
+                    <FooterLink
+                      href={href}
+                      baseColor={currentTheme.text.tertiary}
+                      hoverColor={currentTheme.accent.teal}
+                    >
+                      {label}
+                    </FooterLink>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -282,7 +313,7 @@ export default function Footer() {
             <div>
               <h4
                 className="text-xs font-semibold tracking-widest uppercase mb-5"
-                style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em' }}
+                style={{ color: currentTheme.text.muted, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em' }}
               >
                 Resources
               </h4>
@@ -291,7 +322,16 @@ export default function Footer() {
                   { label: 'GitHub', href: 'https://github.com/Clawdlinux/agentic-operator-core', external: true },
                   { label: 'Documentation', href: 'https://github.com/Clawdlinux/agentic-operator-core/tree/main/docs', external: true },
                 ].map(({ label, href, external }) => (
-                  <li key={label}><FooterLink href={href} external={external}>{label}</FooterLink></li>
+                  <li key={label}>
+                    <FooterLink
+                      href={href}
+                      external={external}
+                      baseColor={currentTheme.text.tertiary}
+                      hoverColor={currentTheme.accent.teal}
+                    >
+                      {label}
+                    </FooterLink>
+                  </li>
                 ))}
               </ul>
             </div>
@@ -300,21 +340,45 @@ export default function Footer() {
             <div>
               <h4
                 className="text-xs font-semibold tracking-widest uppercase mb-5"
-                style={{ color: 'rgba(255,255,255,0.35)', fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em' }}
+                style={{ color: currentTheme.text.muted, fontFamily: "'IBM Plex Mono', monospace", letterSpacing: '0.12em' }}
               >
                 Legal
               </h4>
               <ul className="space-y-3">
-                <li><FooterLink onClick={() => openModal('terms')}>Terms of Service</FooterLink></li>
-                <li><FooterLink onClick={() => openModal('privacy')}>Privacy Policy</FooterLink></li>
-                <li><FooterLink onClick={() => openModal('conduct')}>Code of Conduct</FooterLink></li>
+                <li>
+                  <FooterLink
+                    onClick={() => openModal('terms')}
+                    baseColor={currentTheme.text.tertiary}
+                    hoverColor={currentTheme.accent.teal}
+                  >
+                    Terms of Service
+                  </FooterLink>
+                </li>
+                <li>
+                  <FooterLink
+                    onClick={() => openModal('privacy')}
+                    baseColor={currentTheme.text.tertiary}
+                    hoverColor={currentTheme.accent.teal}
+                  >
+                    Privacy Policy
+                  </FooterLink>
+                </li>
+                <li>
+                  <FooterLink
+                    onClick={() => openModal('conduct')}
+                    baseColor={currentTheme.text.tertiary}
+                    hoverColor={currentTheme.accent.teal}
+                  >
+                    Code of Conduct
+                  </FooterLink>
+                </li>
                 <li>
                   <a
                     href="mailto:oss@clawdlinux.org"
                     className="text-sm transition-colors duration-200"
-                    style={{ color: 'rgba(255,255,255,0.45)', fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#00d4aa'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.45)'; }}
+                    style={{ color: currentTheme.text.tertiary, fontFamily: "'DM Sans', sans-serif", textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = currentTheme.accent.teal; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = currentTheme.text.tertiary; }}
                   >
                     <Mail size={13} />
                     Contact
@@ -328,11 +392,11 @@ export default function Footer() {
           {/* Bottom bar */}
           <div
             className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-8"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}
+            style={{ borderTop: `1px solid ${currentTheme.border.light}` }}
           >
             <p
               className="text-xs text-center sm:text-left"
-              style={{ color: 'rgba(255,255,255,0.25)', fontFamily: "'DM Sans', sans-serif" }}
+              style={{ color: currentTheme.text.muted, fontFamily: "'DM Sans', sans-serif" }}
             >
               &copy; {new Date().getFullYear()} Nine Rewards Solutions Pvt. Ltd. · Bangalore · Apache 2.0
             </p>
@@ -347,15 +411,15 @@ export default function Footer() {
                   onClick={() => openModal(key)}
                   className="text-xs transition-colors duration-200"
                   style={{
-                    color: 'rgba(255,255,255,0.2)',
+                    color: currentTheme.text.muted,
                     fontFamily: "'DM Sans', sans-serif",
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
                     padding: 0,
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.5)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.2)'; }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = currentTheme.text.tertiary; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = currentTheme.text.muted; }}
                 >
                   {label}
                 </button>

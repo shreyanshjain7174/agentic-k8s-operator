@@ -81,10 +81,11 @@ export default function Navigation() {
     >
       {/* Glass background layer */}
       <motion.div
-        className="absolute inset-0 border-b border-white/5 transition-colors duration-300"
+        className="absolute inset-0 transition-colors duration-300"
         style={{ 
           opacity: bgOpacity,
           backgroundColor: currentTheme.bg.primary,
+          borderBottom: `1px solid ${currentTheme.border.light}`,
         }}
       />
 
@@ -218,7 +219,7 @@ export default function Navigation() {
               style={{
                 fontFamily: "'DM Sans', sans-serif",
                 background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
-                color: currentTheme.bg.primary,
+                color: '#03231d',
               }}
             >
               <Calendar className="w-3.5 h-3.5" />
@@ -258,9 +259,11 @@ export default function Navigation() {
         transition={{ duration: 0.25, ease: 'easeInOut' }}
       >
           <div
-            className="relative border-t border-white/5 overflow-hidden transition-colors duration-300 px-4 py-4 flex flex-col gap-1"
+            className="relative overflow-hidden transition-colors duration-300 px-4 py-4 flex flex-col gap-1"
             style={{
               backgroundColor: `${currentTheme.bg.primary}F2`,
+              borderTopColor: currentTheme.border.light,
+              borderTopWidth: '1px',
               borderBottomColor: currentTheme.border.light,
               borderBottomWidth: '1px'
             }}
@@ -349,7 +352,7 @@ export default function Navigation() {
               style={{
                 fontFamily: "'DM Sans', sans-serif",
                 background: `linear-gradient(135deg, ${currentTheme.accent.teal} 0%, #00b894 100%)`,
-                color: currentTheme.bg.primary,
+                color: '#03231d',
               }}
             >
               <Calendar className="w-4 h-4" />

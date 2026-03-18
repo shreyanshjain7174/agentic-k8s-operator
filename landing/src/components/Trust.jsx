@@ -8,8 +8,11 @@ import {
   Users,
   AlertCircle,
 } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 export default function Trust() {
+  const { currentTheme, theme } = useTheme();
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -20,6 +23,8 @@ export default function Trust() {
       },
     },
   };
+
+  const withAlpha = (hex, alpha) => `${hex}${alpha}`;
 
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -84,15 +89,15 @@ export default function Trust() {
   return (
     <section
       id="trust"
-      className="relative w-full py-20 px-4 sm:px-8 lg:px-12 overflow-hidden"
-      style={{ backgroundColor: '#05080f' }}
+      className="relative w-full py-20 px-4 sm:px-8 lg:px-12 overflow-hidden transition-colors duration-300"
+      style={{ backgroundColor: currentTheme.bg.primary }}
     >
       {/* Subtle background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div
           className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] rounded-full opacity-5"
           style={{
-            background: 'radial-gradient(circle, #00d4aa, transparent)',
+            background: `radial-gradient(circle, ${currentTheme.accent.teal}, transparent)`,
           }}
         />
       </div>
@@ -106,10 +111,10 @@ export default function Trust() {
           transition={{ duration: 0.55, ease: 'easeOut' }}
           viewport={{ once: true, margin: '-100px' }}
         >
-          <h2 className="text-4xl sm:text-5xl font-bold mb-4" style={{ color: '#e2e8f0' }}>
+          <h2 className="text-4xl sm:text-5xl font-bold mb-4" style={{ color: currentTheme.text.primary }}>
             Trusted by Teams in Production
           </h2>
-          <p className="text-lg sm:text-xl" style={{ color: '#94a3b8' }}>
+          <p className="text-lg sm:text-xl" style={{ color: currentTheme.text.tertiary }}>
             Enterprise-ready infrastructure built for scale, security, and compliance
           </p>
         </motion.div>
@@ -133,8 +138,11 @@ export default function Trust() {
                 <div
                   className={`relative h-full p-6 rounded-lg border transition-all duration-300 overflow-hidden bg-gradient-to-br ${signal.color}`}
                   style={{
-                    borderColor: 'rgba(0, 212, 170, 0.2)',
-                    backgroundColor: 'rgba(5, 8, 15, 0.8)',
+                    borderColor: withAlpha(signal.accentColor, '33'),
+                    backgroundColor:
+                      theme === 'dark'
+                        ? withAlpha(currentTheme.bg.secondary, 'CC')
+                        : withAlpha(currentTheme.bg.secondary, 'E6'),
                   }}
                 >
                   {/* Hover glow effect */}
@@ -157,7 +165,7 @@ export default function Trust() {
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-sm font-semibold mb-2" style={{ color: '#e2e8f0' }}>
+                    <h3 className="text-sm font-semibold mb-2" style={{ color: currentTheme.text.primary }}>
                       {signal.title}
                     </h3>
 
@@ -182,7 +190,7 @@ export default function Trust() {
                     </div>
 
                     {/* Description */}
-                    <p className="text-xs" style={{ color: '#94a3b8' }}>
+                    <p className="text-xs" style={{ color: currentTheme.text.tertiary }}>
                       {signal.description}
                     </p>
                   </div>
@@ -200,7 +208,7 @@ export default function Trust() {
           transition={{ duration: 0.55, delay: 0.3 }}
           viewport={{ once: true, margin: '-100px' }}
         >
-          <p className="text-sm" style={{ color: '#64748b' }}>
+          <p className="text-sm" style={{ color: currentTheme.text.muted }}>
             All components open-source · No phone-home telemetry · Full transparency
           </p>
         </motion.div>

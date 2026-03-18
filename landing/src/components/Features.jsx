@@ -7,6 +7,7 @@ import {
   Layers,
   GitPullRequest,
 } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 const AUDIENCES = [
   {
@@ -59,15 +60,21 @@ const AUDIENCES = [
   },
 ];
 
+const withAlpha = (hex, alpha) => `${hex}${alpha}`;
+
 export default function Features() {
+  const { currentTheme, theme } = useTheme();
+
   return (
-    <section className="relative py-24 px-4 sm:px-6 lg:px-8" style={{ background: '#05080f' }}>
+    <section
+      className="relative py-24 px-4 sm:px-6 lg:px-8 transition-colors duration-300"
+      style={{ background: currentTheme.bg.primary }}
+    >
       {/* Background gradient */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background:
-            'radial-gradient(circle at 50% 0%, rgba(0,212,170,0.08) 0%, rgba(0,212,170,0) 50%)',
+          background: `radial-gradient(circle at 50% 0%, ${withAlpha(currentTheme.accent.teal, theme === 'dark' ? '14' : '10')} 0%, rgba(0,212,170,0) 50%)`,
         }}
       />
 
@@ -81,12 +88,15 @@ export default function Features() {
             viewport={{ once: true }}
           >
             <h2
-              className="text-4xl sm:text-5xl font-bold mb-4 text-white"
-              style={{ fontFamily: "'Syne', sans-serif" }}
+              className="text-4xl sm:text-5xl font-bold mb-4"
+              style={{
+                fontFamily: "'Syne', sans-serif",
+                color: currentTheme.text.primary,
+              }}
             >
               Who Deploys Clawdlinux
             </h2>
-            <p className="text-lg text-slate-400 max-w-2xl mx-auto">
+            <p className="text-lg max-w-2xl mx-auto" style={{ color: currentTheme.text.tertiary }}>
               From platform engineering to security review, Clawdlinux fits teams standardizing how autonomous agents run on Kubernetes.
             </p>
           </motion.div>
@@ -103,7 +113,11 @@ export default function Features() {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
                 viewport={{ once: true }}
-                className="group relative p-6 rounded-xl border border-white/8 bg-gradient-to-b from-white/5 to-transparent hover:border-white/15 transition-all duration-300"
+                className="group relative p-6 rounded-xl transition-all duration-300"
+                style={{
+                  border: `1px solid ${currentTheme.border.light}`,
+                  background: `linear-gradient(to bottom, ${withAlpha(currentTheme.bg.secondary, theme === 'dark' ? '6E' : 'CC')}, transparent)`,
+                }}
               >
                 {/* Hover glow effect */}
                 <div
@@ -126,15 +140,24 @@ export default function Features() {
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                  <h3 className="text-lg font-bold mb-2" style={{ color: currentTheme.text.primary }}>
+                    {feature.title}
+                  </h3>
 
                   {/* Description */}
-                  <p className="text-sm text-slate-400">{feature.description}</p>
+                  <p className="text-sm" style={{ color: currentTheme.text.tertiary }}>
+                    {feature.description}
+                  </p>
 
                   {/* Checkmark footer */}
-                  <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
+                  <div
+                    className="mt-4 pt-4 flex items-center gap-2"
+                    style={{ borderTop: `1px solid ${currentTheme.border.light}` }}
+                  >
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: feature.color }} />
-                    <span className="text-xs text-slate-500">Open source</span>
+                    <span className="text-xs" style={{ color: currentTheme.text.muted }}>
+                      Open source
+                    </span>
                   </div>
                 </div>
               </motion.div>

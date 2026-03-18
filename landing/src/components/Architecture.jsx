@@ -1,6 +1,7 @@
 import { useRef } from "react";
 import { motion } from "framer-motion";
 import { FileCode, Package, Shield, Activity } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
 const steps = [
   {
@@ -49,7 +50,9 @@ const steps = [
   },
 ];
 
-function GridPattern() {
+const withAlpha = (hex, alpha) => `${hex}${alpha}`;
+
+function GridPattern({ currentTheme }) {
   return (
     <svg
       className="absolute inset-0 w-full h-full"
@@ -66,7 +69,7 @@ function GridPattern() {
           <path
             d="M 40 0 L 0 0 0 40"
             fill="none"
-            stroke="white"
+            stroke={currentTheme.text.primary}
             strokeWidth="1"
           />
         </pattern>
@@ -105,7 +108,7 @@ function ConnectorArrow({ color }) {
   );
 }
 
-function StepCard({ step, index }) {
+function StepCard({ step, index, currentTheme, theme }) {
   const Icon = step.icon;
 
   return (
@@ -119,7 +122,10 @@ function StepCard({ step, index }) {
       <div
         className="rounded-2xl p-6 flex flex-col gap-5 h-full relative overflow-hidden group"
         style={{
-          background: "rgba(13, 21, 37, 0.8)",
+          background:
+            theme === "dark"
+              ? withAlpha(currentTheme.bg.secondary, "CC")
+              : withAlpha(currentTheme.bg.secondary, "E6"),
           border: `1px solid ${step.colorBorder}`,
           backdropFilter: "blur(12px)",
         }}
@@ -160,7 +166,7 @@ function StepCard({ step, index }) {
             className="text-base font-bold mb-2"
             style={{
               fontFamily: "'Syne', sans-serif",
-              color: "#e2e8f0",
+              color: currentTheme.text.primary,
             }}
           >
             {step.title}
@@ -169,7 +175,7 @@ function StepCard({ step, index }) {
             className="text-sm leading-relaxed"
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              color: "#94a3b8",
+              color: currentTheme.text.tertiary,
             }}
           >
             {step.description}
@@ -179,7 +185,11 @@ function StepCard({ step, index }) {
         {/* Details list */}
         <ul className="mt-auto space-y-1.5">
           {step.details.map((detail, i) => (
-            <li key={i} className="flex items-start gap-2 text-xs" style={{ color: "#94a3b8", fontFamily: "'DM Sans', sans-serif" }}>
+            <li
+              key={i}
+              className="flex items-start gap-2 text-xs"
+              style={{ color: currentTheme.text.tertiary, fontFamily: "'DM Sans', sans-serif" }}
+            >
               <span className="mt-0.5 block w-1 h-1 rounded-full flex-shrink-0" style={{ background: step.color }} />
               {detail}
             </li>
@@ -191,6 +201,7 @@ function StepCard({ step, index }) {
 }
 
 export default function Architecture() {
+  const { currentTheme, theme } = useTheme();
   const ref = useRef(null);
 
   return (
@@ -198,16 +209,15 @@ export default function Architecture() {
       id="architecture"
       ref={ref}
       className="py-24 px-4 relative overflow-hidden"
-      style={{ background: "#05080f" }}
+      style={{ background: currentTheme.bg.primary }}
     >
-      <GridPattern />
+      <GridPattern currentTheme={currentTheme} />
 
       {/* Ambient glow */}
       <div
         className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2/3 h-64 pointer-events-none"
         style={{
-          background:
-            "radial-gradient(ellipse, rgba(0, 212, 170, 0.04) 0%, transparent 70%)",
+          background: `radial-gradient(ellipse, ${withAlpha(currentTheme.accent.teal, theme === "dark" ? "0A" : "08")} 0%, transparent 70%)`,
         }}
       />
 
@@ -222,9 +232,9 @@ export default function Architecture() {
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-6"
             style={{
-              background: "rgba(0, 212, 170, 0.08)",
-              border: "1px solid rgba(0, 212, 170, 0.2)",
-              color: "#00d4aa",
+              background: withAlpha(currentTheme.accent.teal, theme === "dark" ? "14" : "10"),
+              border: `1px solid ${withAlpha(currentTheme.accent.teal, "40")}`,
+              color: currentTheme.accent.teal,
               fontFamily: "'DM Sans', sans-serif",
             }}
           >
@@ -234,13 +244,13 @@ export default function Architecture() {
             className="text-3xl sm:text-4xl lg:text-5xl font-bold"
             style={{
               fontFamily: "'Syne', sans-serif",
-              color: "#e2e8f0",
+              color: currentTheme.text.primary,
             }}
           >
             From Target to{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, #00d4aa, #6366f1)",
+                background: `linear-gradient(135deg, ${currentTheme.accent.teal}, ${currentTheme.accent.indigo})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -254,7 +264,7 @@ export default function Architecture() {
             className="mt-4 text-base max-w-xl mx-auto"
             style={{
               fontFamily: "'DM Sans', sans-serif",
-              color: "#94a3b8",
+              color: currentTheme.text.tertiary,
             }}
           >
             Four reconciliation stages turn a declarative manifest into an isolated, observable AI workload on Kubernetes.
@@ -265,7 +275,12 @@ export default function Architecture() {
         <div className="flex flex-col lg:flex-row items-stretch gap-4 lg:gap-0">
           {steps.map((step, index) => (
             <div key={step.number} className="flex flex-col lg:flex-row items-stretch flex-1 min-w-0">
-              <StepCard step={step} index={index} />
+              <StepCard
+                step={step}
+                index={index}
+                currentTheme={currentTheme}
+                theme={theme}
+              />
               {index < steps.length - 1 && (
                 <ConnectorArrow color={step.color} />
               )}
@@ -302,15 +317,18 @@ export default function Architecture() {
           <div
             className="inline-flex items-center gap-3 px-6 py-4 rounded-xl"
             style={{
-              background: "rgba(13, 21, 37, 0.8)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background:
+                theme === "dark"
+                  ? withAlpha(currentTheme.bg.secondary, "CC")
+                  : withAlpha(currentTheme.bg.secondary, "E6"),
+              border: `1px solid ${currentTheme.border.light}`,
             }}
           >
             <span
               className="text-sm"
               style={{
                 fontFamily: "'IBM Plex Mono', monospace",
-                color: "#94a3b8",
+                color: currentTheme.text.tertiary,
               }}
             >
               From kubectl apply to running agent:
@@ -319,7 +337,7 @@ export default function Architecture() {
               className="text-sm font-bold"
               style={{
                 fontFamily: "'IBM Plex Mono', monospace",
-                color: "#00d4aa",
+                color: currentTheme.accent.teal,
               }}
             >
               one manifest, zero custom glue

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { useTheme } from "../hooks/useTheme";
 
 const stats = [
   {
@@ -59,7 +60,7 @@ function useCountUp(target, duration = 1800, active = false) {
   return count;
 }
 
-function StatItem({ stat, active, index }) {
+function StatItem({ stat, active, index, currentTheme }) {
   const count = useCountUp(stat.value, 1600, active);
   const isLast = index === stats.length - 1;
 
@@ -93,7 +94,7 @@ function StatItem({ stat, active, index }) {
           className="text-xs"
           style={{
             fontFamily: "'DM Sans', sans-serif",
-            color: "#94a3b8",
+            color: currentTheme.text.tertiary,
           }}
         >
           {stat.sublabel}
@@ -104,7 +105,7 @@ function StatItem({ stat, active, index }) {
           className="w-px self-stretch my-4"
           style={{
             background:
-              "linear-gradient(to bottom, transparent, rgba(255,255,255,0.08), transparent)",
+              `linear-gradient(to bottom, transparent, ${currentTheme.border.light}, transparent)`,
           }}
         />
       )}
@@ -113,6 +114,7 @@ function StatItem({ stat, active, index }) {
 }
 
 export default function StatsBar() {
+  const { currentTheme } = useTheme();
   const isInView = true;
 
   return (
@@ -121,15 +123,21 @@ export default function StatsBar() {
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.6, ease: "easeOut" }}
       style={{
-        background: "rgba(5, 8, 15, 0.95)",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: currentTheme.bg.overlay,
+        borderTop: `1px solid ${currentTheme.border.light}`,
+        borderBottom: `1px solid ${currentTheme.border.light}`,
       }}
     >
       <div className="max-w-6xl mx-auto">
         <div className="flex flex-col sm:flex-row divide-y sm:divide-y-0">
           {stats.map((stat, i) => (
-            <StatItem key={stat.label} stat={stat} active={isInView} index={i} />
+            <StatItem
+              key={stat.label}
+              stat={stat}
+              active={isInView}
+              index={i}
+              currentTheme={currentTheme}
+            />
           ))}
         </div>
       </div>

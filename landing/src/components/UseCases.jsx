@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, TrendingDown, Shield, Network, ClipboardList } from "lucide-react";
+import { useTheme } from "../hooks/useTheme";
 
 const YAML_AGENT_ISOLATION = `apiVersion: agentic.clawdlinux.io/v1alpha1
 kind: AgentWorkload
@@ -59,6 +60,8 @@ spec:
 
 const yamlMap = { YAML_AGENT_ISOLATION, YAML_MULTI_TENANT, YAML_AUDIT };
 
+const withAlpha = (hex, alpha) => `${hex}${alpha}`;
+
 const tabs = [
   {
     id: "isolation",
@@ -104,24 +107,24 @@ const tabs = [
   },
 ];
 
-function MetricCard({ label, value, sublabel, highlight, highlightColor }) {
+function MetricCard({ label, value, sublabel, highlight, highlightColor, currentTheme, theme }) {
   return (
     <div
       className="flex-1 rounded-xl p-5"
       style={{
         background: highlight
-          ? `rgba(${highlightColor}, 0.08)`
-          : "rgba(255,255,255,0.03)",
+          ? withAlpha(highlightColor, theme === "dark" ? "14" : "10")
+          : withAlpha(currentTheme.bg.secondary, theme === "dark" ? "7A" : "D9"),
         border: highlight
-          ? `1px solid rgba(${highlightColor}, 0.25)`
-          : "1px solid rgba(255,255,255,0.06)",
+          ? `1px solid ${withAlpha(highlightColor, "40")}`
+          : `1px solid ${currentTheme.border.light}`,
       }}
     >
       <div
         className="text-xs font-semibold uppercase tracking-widest mb-3"
         style={{
           fontFamily: "'DM Sans', sans-serif",
-          color: highlight ? `rgb(${highlightColor})` : "#94a3b8",
+          color: highlight ? highlightColor : currentTheme.text.tertiary,
         }}
       >
         {label}
@@ -130,7 +133,7 @@ function MetricCard({ label, value, sublabel, highlight, highlightColor }) {
         className="text-2xl font-bold mb-1"
         style={{
           fontFamily: "'Syne', sans-serif",
-          color: highlight ? `rgb(${highlightColor})` : "#e2e8f0",
+          color: highlight ? highlightColor : currentTheme.text.primary,
         }}
       >
         {value}
@@ -139,7 +142,7 @@ function MetricCard({ label, value, sublabel, highlight, highlightColor }) {
         className="text-sm"
         style={{
           fontFamily: "'DM Sans', sans-serif",
-          color: "#94a3b8",
+          color: currentTheme.text.tertiary,
         }}
       >
         {sublabel}
@@ -148,20 +151,22 @@ function MetricCard({ label, value, sublabel, highlight, highlightColor }) {
   );
 }
 
-function CodeBlock({ code, title }) {
+function CodeBlock({ code, title, currentTheme, theme }) {
+  const panelBg = theme === "dark" ? "#0a0f1e" : "#f8fafc";
+
   return (
     <div
       className="rounded-xl overflow-hidden"
       style={{
-        background: "rgba(5, 8, 15, 0.9)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: panelBg,
+        border: `1px solid ${currentTheme.border.light}`,
       }}
     >
       <div
         className="flex items-center gap-2 px-4 py-3"
         style={{
-          background: "rgba(255,255,255,0.03)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: withAlpha(currentTheme.bg.secondary, theme === "dark" ? "A3" : "CC"),
+          borderBottom: `1px solid ${currentTheme.border.light}`,
         }}
       >
         <div className="w-3 h-3 rounded-full" style={{ background: "#ff5f57" }} />
@@ -169,7 +174,7 @@ function CodeBlock({ code, title }) {
         <div className="w-3 h-3 rounded-full" style={{ background: "#28c840" }} />
         <span
           className="ml-2 text-xs"
-          style={{ fontFamily: "'IBM Plex Mono', monospace", color: "#94a3b8" }}
+          style={{ fontFamily: "'IBM Plex Mono', monospace", color: currentTheme.text.muted }}
         >
           {title}
         </span>
@@ -178,7 +183,7 @@ function CodeBlock({ code, title }) {
         className="p-5 text-xs leading-relaxed overflow-x-auto"
         style={{
           fontFamily: "'IBM Plex Mono', monospace",
-          color: "#e2e8f0",
+          color: currentTheme.text.primary,
           margin: 0,
         }}
       >
@@ -207,6 +212,7 @@ function CodeBlock({ code, title }) {
 
 export default function UseCases() {
   const [activeTab, setActiveTab] = useState(0);
+  const { currentTheme, theme } = useTheme();
 
   const tab = tabs[activeTab];
 
@@ -215,7 +221,7 @@ export default function UseCases() {
       id="use-cases"
       className="py-24 px-4"
       style={{
-        background: "linear-gradient(180deg, #05080f 0%, #070b14 100%)",
+        background: `linear-gradient(180deg, ${currentTheme.bg.primary} 0%, ${currentTheme.bg.secondary} 100%)`,
       }}
     >
       <div className="max-w-5xl mx-auto">
@@ -229,9 +235,9 @@ export default function UseCases() {
           <div
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-widest mb-6"
             style={{
-              background: "rgba(99, 102, 241, 0.08)",
-              border: "1px solid rgba(99, 102, 241, 0.2)",
-              color: "#6366f1",
+              background: withAlpha(currentTheme.accent.indigo, theme === "dark" ? "14" : "10"),
+              border: `1px solid ${withAlpha(currentTheme.accent.indigo, "40")}`,
+              color: currentTheme.accent.indigo,
               fontFamily: "'DM Sans', sans-serif",
             }}
           >
@@ -241,13 +247,13 @@ export default function UseCases() {
             className="text-3xl sm:text-4xl lg:text-5xl font-bold"
             style={{
               fontFamily: "'Syne', sans-serif",
-              color: "#e2e8f0",
+              color: currentTheme.text.primary,
             }}
           >
             Three Ways to Deploy{" "}
             <span
               style={{
-                background: "linear-gradient(135deg, #00d4aa, #6366f1)",
+                background: `linear-gradient(135deg, ${currentTheme.accent.teal}, ${currentTheme.accent.indigo})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
@@ -262,8 +268,8 @@ export default function UseCases() {
         <div
           className="flex flex-col sm:flex-row gap-1 p-1 rounded-xl mb-10"
           style={{
-            background: "rgba(13, 21, 37, 0.7)",
-            border: "1px solid rgba(255,255,255,0.06)",
+            background: withAlpha(currentTheme.bg.secondary, theme === "dark" ? "B3" : "D9"),
+            border: `1px solid ${currentTheme.border.light}`,
           }}
         >
           {tabs.map((t, i) => (
@@ -273,9 +279,9 @@ export default function UseCases() {
               className="flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-300 text-left sm:text-center relative"
               style={{
                 fontFamily: "'DM Sans', sans-serif",
-                color: activeTab === i ? "#e2e8f0" : "#94a3b8",
-                background: activeTab === i ? "rgba(0, 212, 170, 0.1)" : "transparent",
-                border: activeTab === i ? "1px solid rgba(0, 212, 170, 0.25)" : "1px solid transparent",
+                color: activeTab === i ? currentTheme.text.primary : currentTheme.text.tertiary,
+                background: activeTab === i ? withAlpha(currentTheme.accent.teal, theme === "dark" ? "1A" : "14") : "transparent",
+                border: activeTab === i ? `1px solid ${withAlpha(currentTheme.accent.teal, "40")}` : "1px solid transparent",
               }}
             >
               {activeTab === i && (
@@ -283,7 +289,7 @@ export default function UseCases() {
                   layoutId="tab-indicator"
                   className="absolute inset-0 rounded-lg"
                   style={{
-                    background: "rgba(0, 212, 170, 0.08)",
+                    background: withAlpha(currentTheme.accent.teal, theme === "dark" ? "14" : "10"),
                   }}
                   transition={{ type: "spring", bounce: 0.2, duration: 0.5 }}
                 />
@@ -308,8 +314,8 @@ export default function UseCases() {
                 <div
                   className="rounded-xl p-6"
                   style={{
-                    background: "rgba(13, 21, 37, 0.7)",
-                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: withAlpha(currentTheme.bg.secondary, theme === "dark" ? "B3" : "D9"),
+                    border: `1px solid ${currentTheme.border.light}`,
                   }}
                 >
                   <div
@@ -325,7 +331,7 @@ export default function UseCases() {
                     className="text-sm leading-relaxed"
                     style={{
                       fontFamily: "'DM Sans', sans-serif",
-                      color: "#94a3b8",
+                      color: currentTheme.text.tertiary,
                     }}
                   >
                     {tab.problem}
@@ -335,8 +341,8 @@ export default function UseCases() {
                 <div
                   className="rounded-xl p-6"
                   style={{
-                    background: "rgba(13, 21, 37, 0.7)",
-                    border: "1px solid rgba(0, 212, 170, 0.15)",
+                    background: withAlpha(currentTheme.bg.secondary, theme === "dark" ? "B3" : "D9"),
+                    border: `1px solid ${withAlpha(currentTheme.accent.teal, "26")}`,
                   }}
                 >
                   <div
@@ -352,7 +358,7 @@ export default function UseCases() {
                     className="text-sm leading-relaxed"
                     style={{
                       fontFamily: "'DM Sans', sans-serif",
-                      color: "#e2e8f0",
+                      color: currentTheme.text.primary,
                     }}
                   >
                     {tab.solution}
@@ -366,24 +372,28 @@ export default function UseCases() {
                     value={tab.before.value}
                     sublabel={tab.before.label}
                     highlight={false}
+                    currentTheme={currentTheme}
+                    theme={theme}
                   />
                   <div className="flex items-center">
-                    <ArrowRight size={20} color="#94a3b8" />
+                    <ArrowRight size={20} color={currentTheme.text.muted} />
                   </div>
                   <MetricCard
                     label="After"
                     value={tab.after.value}
                     sublabel={tab.after.label}
                     highlight={true}
-                    highlightColor="0, 212, 170"
+                    highlightColor={currentTheme.accent.teal}
+                    currentTheme={currentTheme}
+                    theme={theme}
                   />
                 </div>
 
                 <div
                   className="rounded-xl px-5 py-4 flex items-center gap-3"
                   style={{
-                    background: `rgba(${tab.savings.color === "#f59e0b" ? "245, 158, 11" : tab.savings.color === "#00d4aa" ? "0, 212, 170" : "99, 102, 241"}, 0.08)`,
-                    border: `1px solid rgba(${tab.savings.color === "#f59e0b" ? "245, 158, 11" : tab.savings.color === "#00d4aa" ? "0, 212, 170" : "99, 102, 241"}, 0.2)`,
+                    background: withAlpha(tab.savings.color, theme === "dark" ? "14" : "10"),
+                    border: `1px solid ${withAlpha(tab.savings.color, "40")}`,
                   }}
                 >
                   <TrendingDown size={18} color={tab.savings.color} />
@@ -401,7 +411,12 @@ export default function UseCases() {
 
               {/* Right: Code Snippet */}
               <div>
-                <CodeBlock code={yamlMap[tab.yamlKey]} title={tab.configFile} />
+                <CodeBlock
+                  code={yamlMap[tab.yamlKey]}
+                  title={tab.configFile}
+                  currentTheme={currentTheme}
+                  theme={theme}
+                />
               </div>
             </div>
           </motion.div>

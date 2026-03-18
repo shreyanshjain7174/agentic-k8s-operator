@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Github, GitFork, Star, Clipboard, Check } from 'lucide-react';
+import { useTheme } from '../hooks/useTheme';
 
 const containerVariants = {
   hidden: { opacity: 0, y: 40 },
@@ -50,6 +51,8 @@ const STARTER_TEMPLATES = [
 
 export default function OpenSource() {
   const [copied, setCopied] = useState(false);
+  const { currentTheme, theme } = useTheme();
+  const withAlpha = (hex, alpha) => `${hex}${alpha}`;
 
   const handleCopy = async () => {
     try {
@@ -72,13 +75,13 @@ export default function OpenSource() {
   return (
     <section
       id="github"
-      style={{ background: '#05080f' }}
+      style={{ background: currentTheme.bg.primary }}
       className="py-24 px-6 overflow-hidden"
     >
       {/* Subtle top divider */}
       <div
         className="max-w-5xl mx-auto mb-0"
-        style={{ borderTop: '1px solid rgba(0,212,170,0.08)' }}
+        style={{ borderTop: `1px solid ${withAlpha(currentTheme.accent.teal, '14')}` }}
       />
 
       <motion.div
@@ -93,12 +96,12 @@ export default function OpenSource() {
           <div
             className="w-20 h-20 rounded-2xl flex items-center justify-center"
             style={{
-              background: 'rgba(0,212,170,0.08)',
-              border: '1px solid rgba(0,212,170,0.2)',
-              boxShadow: '0 0 40px rgba(0,212,170,0.12)',
+              background: withAlpha(currentTheme.accent.teal, theme === 'dark' ? '14' : '10'),
+              border: `1px solid ${withAlpha(currentTheme.accent.teal, '40')}`,
+              boxShadow: `0 0 40px ${withAlpha(currentTheme.accent.teal, theme === 'dark' ? '1F' : '14')}`,
             }}
           >
-            <Github size={42} style={{ color: '#00d4aa' }} strokeWidth={1.5} />
+            <Github size={42} style={{ color: currentTheme.accent.teal }} strokeWidth={1.5} />
           </div>
         </motion.div>
 
@@ -107,17 +110,20 @@ export default function OpenSource() {
           <span
             className="inline-block text-xs font-semibold tracking-widest uppercase mb-4 px-3 py-1 rounded-full"
             style={{
-              color: '#00d4aa',
-              background: 'rgba(0,212,170,0.08)',
-              border: '1px solid rgba(0,212,170,0.2)',
+              color: currentTheme.accent.teal,
+              background: withAlpha(currentTheme.accent.teal, theme === 'dark' ? '14' : '10'),
+              border: `1px solid ${withAlpha(currentTheme.accent.teal, '40')}`,
               fontFamily: "'IBM Plex Mono', monospace",
             }}
           >
             Open Source
           </span>
           <h2
-            className="text-4xl md:text-5xl font-bold text-white"
-            style={{ fontFamily: "'Syne', sans-serif" }}
+            className="text-4xl md:text-5xl font-bold"
+            style={{
+              fontFamily: "'Syne', sans-serif",
+              color: currentTheme.text.primary,
+            }}
           >
             Powered by Open Source
           </h2>
@@ -126,7 +132,7 @@ export default function OpenSource() {
         <motion.p
           variants={itemVariants}
           className="text-center text-lg mb-12"
-          style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'DM Sans', sans-serif" }}
+          style={{ color: currentTheme.text.tertiary, fontFamily: "'DM Sans', sans-serif" }}
         >
           Agentic Operator is open source for policy-aware AI workloads on Kubernetes. Inspect, extend, and self-host.
         </motion.p>
@@ -136,24 +142,27 @@ export default function OpenSource() {
           variants={itemVariants}
           className="rounded-2xl p-6 mb-8"
           style={{
-            background: 'rgba(13,21,37,0.7)',
-            border: '1px solid rgba(0,212,170,0.15)',
+            background:
+              theme === 'dark'
+                ? withAlpha(currentTheme.bg.secondary, 'B3')
+                : withAlpha(currentTheme.bg.secondary, 'E6'),
+            border: `1px solid ${withAlpha(currentTheme.accent.teal, '26')}`,
             backdropFilter: 'blur(12px)',
-            boxShadow: '0 4px 40px rgba(0,0,0,0.4)',
+            boxShadow: theme === 'dark' ? '0 4px 40px rgba(0,0,0,0.4)' : '0 4px 24px rgba(15,23,42,0.12)',
           }}
         >
           {/* Repo header */}
           <div className="flex items-start justify-between flex-wrap gap-4 mb-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
-                <Github size={18} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                <Github size={18} style={{ color: currentTheme.text.tertiary }} />
                 <a
                   href="https://github.com/Clawdlinux/agentic-operator-core"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold text-lg hover:underline"
                   style={{
-                    color: '#00d4aa',
+                    color: currentTheme.accent.teal,
                     fontFamily: "'IBM Plex Mono', monospace",
                     textDecoration: 'none',
                   }}
@@ -164,7 +173,7 @@ export default function OpenSource() {
               <p
                 className="text-sm"
                 style={{
-                  color: 'rgba(255,255,255,0.55)',
+                  color: currentTheme.text.tertiary,
                   fontFamily: "'DM Sans', sans-serif",
                 }}
               >
@@ -180,9 +189,9 @@ export default function OpenSource() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105"
                 style={{
-                  background: 'rgba(0,212,170,0.12)',
-                  border: '1px solid rgba(0,212,170,0.3)',
-                  color: '#00d4aa',
+                  background: withAlpha(currentTheme.accent.teal, theme === 'dark' ? '1F' : '14'),
+                  border: `1px solid ${withAlpha(currentTheme.accent.teal, '4D')}`,
+                  color: currentTheme.accent.teal,
                   fontFamily: "'DM Sans', sans-serif",
                   textDecoration: 'none',
                 }}
@@ -196,9 +205,9 @@ export default function OpenSource() {
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105"
                 style={{
-                  background: 'rgba(99,102,241,0.12)',
-                  border: '1px solid rgba(99,102,241,0.3)',
-                  color: '#6366f1',
+                  background: withAlpha(currentTheme.accent.indigo, theme === 'dark' ? '1F' : '14'),
+                  border: `1px solid ${withAlpha(currentTheme.accent.indigo, '4D')}`,
+                  color: currentTheme.accent.indigo,
                   fontFamily: "'DM Sans', sans-serif",
                   textDecoration: 'none',
                 }}
@@ -233,7 +242,7 @@ export default function OpenSource() {
           <p
             className="text-sm font-semibold mb-3"
             style={{
-              color: 'rgba(255,255,255,0.5)',
+              color: currentTheme.text.tertiary,
               fontFamily: "'IBM Plex Mono', monospace",
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
@@ -244,9 +253,12 @@ export default function OpenSource() {
           <div
             className="relative rounded-xl p-5"
             style={{
-              background: '#0a0f1e',
-              border: '1px solid rgba(0,212,170,0.15)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
+              background: theme === 'dark' ? '#0a0f1e' : '#f8fafc',
+              border: `1px solid ${withAlpha(currentTheme.accent.teal, '26')}`,
+              boxShadow:
+                theme === 'dark'
+                  ? 'inset 0 1px 0 rgba(255,255,255,0.03)'
+                  : 'inset 0 1px 0 rgba(15,23,42,0.03)',
             }}
           >
             {/* Terminal dots */}
@@ -260,13 +272,13 @@ export default function OpenSource() {
               className="text-sm leading-relaxed overflow-x-auto"
               style={{
                 fontFamily: "'IBM Plex Mono', monospace",
-                color: '#e2e8f0',
+                color: currentTheme.text.primary,
                 margin: 0,
                 whiteSpace: 'pre-wrap',
                 wordBreak: 'break-word',
               }}
             >
-              <span style={{ color: '#00d4aa' }}>$</span>{' '}
+              <span style={{ color: currentTheme.accent.teal }}>$</span>{' '}
               {`git clone https://github.com/Clawdlinux/agentic-operator-core.git`}
             </pre>
 
@@ -275,9 +287,13 @@ export default function OpenSource() {
               onClick={handleCopy}
               className="absolute top-4 right-4 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 hover:scale-105"
               style={{
-                background: copied ? 'rgba(0,212,170,0.15)' : 'rgba(255,255,255,0.05)',
-                border: copied ? '1px solid rgba(0,212,170,0.4)' : '1px solid rgba(255,255,255,0.1)',
-                color: copied ? '#00d4aa' : 'rgba(255,255,255,0.5)',
+                background: copied
+                  ? withAlpha(currentTheme.accent.teal, theme === 'dark' ? '26' : '18')
+                  : withAlpha(currentTheme.bg.secondary, theme === 'dark' ? '8C' : 'CC'),
+                border: copied
+                  ? `1px solid ${withAlpha(currentTheme.accent.teal, '66')}`
+                  : `1px solid ${currentTheme.border.light}`,
+                color: copied ? currentTheme.accent.teal : currentTheme.text.tertiary,
                 cursor: 'pointer',
                 fontFamily: "'IBM Plex Mono', monospace",
               }}
@@ -302,7 +318,7 @@ export default function OpenSource() {
           <p
             className="text-sm font-semibold mb-4"
             style={{
-              color: 'rgba(255,255,255,0.5)',
+              color: currentTheme.text.tertiary,
               fontFamily: "'IBM Plex Mono', monospace",
               letterSpacing: '0.08em',
               textTransform: 'uppercase',
@@ -319,20 +335,23 @@ export default function OpenSource() {
                 rel="noopener noreferrer"
                 className="rounded-xl p-4 transition-all duration-200 hover:-translate-y-1"
                 style={{
-                  background: 'rgba(13,21,37,0.65)',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background:
+                    theme === 'dark'
+                      ? withAlpha(currentTheme.bg.secondary, 'A6')
+                      : withAlpha(currentTheme.bg.secondary, 'E6'),
+                  border: `1px solid ${currentTheme.border.light}`,
                   textDecoration: 'none',
                 }}
               >
                 <h4
                   className="text-sm font-semibold mb-2"
-                  style={{ color: '#e2e8f0', fontFamily: "'Syne', sans-serif" }}
+                  style={{ color: currentTheme.text.primary, fontFamily: "'Syne', sans-serif" }}
                 >
                   {template.name}
                 </h4>
                 <p
                   className="text-xs leading-relaxed"
-                  style={{ color: 'rgba(255,255,255,0.55)', fontFamily: "'DM Sans', sans-serif" }}
+                  style={{ color: currentTheme.text.tertiary, fontFamily: "'DM Sans', sans-serif" }}
                 >
                   {template.description}
                 </p>
@@ -351,14 +370,17 @@ export default function OpenSource() {
               key={stat.label}
               className="text-center rounded-xl py-6 px-4"
               style={{
-                background: 'rgba(13,21,37,0.5)',
-                border: '1px solid rgba(0,212,170,0.1)',
+                background:
+                  theme === 'dark'
+                    ? withAlpha(currentTheme.bg.secondary, '80')
+                    : withAlpha(currentTheme.bg.secondary, 'D9'),
+                border: `1px solid ${withAlpha(currentTheme.accent.teal, '1F')}`,
               }}
             >
               <div
                 className="text-2xl font-bold mb-1"
                 style={{
-                  color: '#00d4aa',
+                  color: currentTheme.accent.teal,
                   fontFamily: "'Syne', sans-serif",
                 }}
               >
@@ -367,7 +389,7 @@ export default function OpenSource() {
               <div
                 className="text-sm"
                 style={{
-                  color: 'rgba(255,255,255,0.5)',
+                  color: currentTheme.text.tertiary,
                   fontFamily: "'DM Sans', sans-serif",
                 }}
               >
