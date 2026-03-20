@@ -132,7 +132,7 @@
         "resources": { "$ref": "#/$defs/resources" },
         "service": { "$ref": "#/$defs/service" },
         "persistence": { "$ref": "#/$defs/persistence" },
-        "rootUser": { "type": "string", "minLength": 1 },
+        "rootUser": { "type": "string", "description": "If empty, auto-generated on first install" },
         "rootPassword": { "type": "string", "description": "If empty, auto-generated on first install" },
         "defaultBuckets": { "type": "string" }
       }

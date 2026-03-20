@@ -82,7 +82,8 @@ agenticOperator:
 cloudflareAI:
   enabled: false
   accountId: ""              # Your Cloudflare Account ID
-  apiToken: ""               # API token with Workers AI Read+Write
+  apiToken: ""               # API token (prefer existingSecret below)
+  existingSecret: ""         # Name of existing Secret containing 'api-token' key
   defaultModel: "@cf/meta/llama-2-7b-chat-int8"
 
 # ---------------------------------------------------------------------------
@@ -204,7 +205,7 @@ minio:
     enabled: true
     size: 10Gi
     storageClass: ""
-  rootUser: minioadmin
+  rootUser: ""     # auto-generated if left empty
   rootPassword: ""   # auto-generated if left empty
   defaultBuckets: "agent-artifacts,agent-logs"
 
